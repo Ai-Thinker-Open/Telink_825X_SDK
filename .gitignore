@@ -1,0 +1,4 @@
+.vscode
+components/mesh
+example/mesh
+example/*/out
