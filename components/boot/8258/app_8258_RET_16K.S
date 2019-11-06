@@ -20,7 +20,7 @@
  *
  *******************************************************************************************************/
 
-#ifdef MCU_STARTUP_8258_RET_16K
+#ifdef MCU_APP_8258_RET_16K
 
 #ifndef __LOAD_RAM_SIZE__
 #define	__LOAD_RAM_SIZE__		0xc
@@ -70,14 +70,13 @@ __start:					@ MUST,  referenced by boot.link
 @	.word	(0x00880000 + 0x400)
 
 	.org 0x10
-	tj		__irq
+	tj	__irq
 	.org 0x18
 	.word	(_bin_size_)
 @********************************************************************************************************
 @                                   LOW-LEVEL INITIALIZATION
 @********************************************************************************************************
 	.extern  main
-
 
 
 	.org 0x20
@@ -119,51 +118,6 @@ __suspend_data:
 
 
 __reset:
-
-#if 0
-	@ add debug, PB4 output 1
-	tloadr     	r1, DEBUG_GPIO    @0x80058a  PB oen
-	tmov		r0, #139      @0b 11101111
-	tstorerb	r0, [r1, #0]
-
-	tmov		r0, #16			@0b 00010000
-	tstorerb	r0, [r1, #1]	@0x800583  PB output
-#endif
-
-SET_BOOT:
-	tmov        r2, #4
-	tloadrb     r1, [r2]		@read form core_840004
-	tmov     	r0, #165    @A5
-	tcmp        r0, r1
-	tjne		SET_BOOT_END
-
-	tmov        r2, #5
-	tloadrb     r1, [r2]		@read form core_840005
-	tloadr     	r0, BOOT_SEL_D
-	tstorerb	r1, [r0, #0]
-SET_BOOT_END:
-
-
-
-@send flash cmd 0xab to wakeup flash;
-FLASH_WAKEUP_BEGIN:
-	tloadr      r0,FLASH_RECOVER + 0
-	tmov		r1,#0
-	tstorerb    r1,[r0,#1]
-	tmov        r1,#171						@Flash deep cmd: 0xAB
-	tstorerb    r1,[r0,#0]
-	tmov		r2,#0
-	tmov        r3,#6
-TNOP:
-	tadd        r2,#1
-	tcmp        r2,r3
-	tjle        TNOP
-	tmov		r1,#1
-	tstorerb    r1,[r0,#1]
-FLASH_WAKEUP_END:
-
-
-
 
 	tloadr	r0, FLL_D
 	tloadr	r1, FLL_D+4
@@ -232,7 +186,7 @@ COPY_DATA:
 	tadd		r2, #4
 	tj			COPY_DATA
 COPY_DATA_END:
-
+	 
 #if 0
 SETSPISPEED:
 	tloadr     	r1, DAT0 + 36
@@ -311,11 +265,12 @@ __irq:
 	tpop		{r0-r7}
 	treti    	{r15}
 
+	.org 0x1f6
 ASMEND:
 
 	.section .bss
 	.align 4
 	.lcomm irq_stk, IRQ_STK_SIZE
 	.end
-
+	
 #endif

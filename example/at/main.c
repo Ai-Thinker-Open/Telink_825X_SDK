@@ -23,14 +23,14 @@
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
-#include "../../vendor/common/user_config.h"
+#include "vendor/common/user_config.h"
 
 extern void user_init_normal();
 extern void user_init_deepRetn();
 
 extern void main_loop (void);
 
-_attribute_ram_code_ void irq_handler(void)
+_attribute_my_ram_code_ void irq_handler(void)
 {
 	app_uart_irq_proc();
 
@@ -40,8 +40,6 @@ _attribute_ram_code_ void irq_handler(void)
 
 _attribute_ram_code_ int main (void)    //must run in ramcode
 {
-	DBG_CHN0_LOW;   //debug
-
 	blc_pm_select_internal_32k_crystal();
 
 	cpu_wakeup_init();
@@ -60,6 +58,10 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 
 	blc_app_loadCustomizedParameters();  //load customized freq_offset cap value
 
+	app_uart_init();
+
+	at_print("Ai-Thinker Ble AT V 0.1\r\nready\r\n");
+	
 	if( deepRetWakeUp ){
 		user_init_deepRetn ();
 	}
@@ -67,11 +69,7 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 		user_init_normal ();
 	}
 
-	app_uart_init();
 
-    //irq_enable();
-
-	at_print("Ai-Thinker Ble AT V 0.1\r\nready\r\n");
 
 	while (1) {
 #if (MODULE_WATCHDOG_ENABLE)
@@ -81,3 +79,4 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 	}
 }
 
+ 

@@ -487,7 +487,7 @@ Link Layer pak format(BLE4.0\4.1 spec):
 1.ADV Channel, payload:0~37bytes = 6bytes AdvAdd + [maximum 31bytes adv packet payload]
 2.Data Channel, payload:0~31bytes = 0~27bytes + 4bytes MIC(may include MIC feild)[The payload in ble4.0/4.1 is 27 bytes].
   Protocol overhead: 10bytes(preamble\Access Address\Header\CRC) + L2CAP header 4bytes = 14bytes,all LL data contains 14 bytes of overhead,
-  For att, opCode is also needed, 1bytes + handle 2bytes = 3bytes, 27-4-3=[final 23-3bytes available to users]£¬This is why the default mtu size is 23 in the ble4.0 protocol.
+  For att, opCode is also needed, 1bytes + handle 2bytes = 3bytes, 27-4-3=[final 23-3bytes available to users]<A3><AC>This is why the default mtu size is 23 in the ble4.0 protocol.
 **********************************************************************************************************************/
 
 

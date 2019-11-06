@@ -1,41 +1,42 @@
-################################################################################
-# Automatically-generated file. Do not edit!
-################################################################################
+#########################################################################################
+# As a new project, you should  the following variables		
 
-OBJ_SRCS := 
-S_SRCS := 
-ASM_SRCS := 
-C_SRCS := 
-S_UPPER_SRCS := 
-O_SRCS := 
-FLASH_IMAGE := 
-ELFS := 
-OBJS := 
-LST := 
-SIZEDUMMY := 
-OUT_DIR :=
+# First, select the chip type, the chip type can be:					
+#			TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8261
+#			TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8266
+#			TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8267
+#			TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8269
+#
+# Second, select the link lib, the available link lib file in Telink SDK proj_lib folder
+#
+# Third, Set Telink SDK path to  variable TEL_PATH
+# 
+# Forth, Set Project Name
+#########################################################################################
 
-# ################################################################################
-# # Automatically-generated file. Do not edit! subdir.mk
-# ################################################################################
+# Select Chip  
+TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258 -D__PROJECT_8258_DRIVER_TEST__=1
 
-# # Add inputs and outputs from these tool invocations to the build variables 
-# S_UPPER_SRCS += \
-# ../div_mod.S 
+# Select link lib
+LIBS :=  -llt_8258
 
-# OBJS += $(OUT_PATH)/div_mod.o 
+##########################################################################################
+#Set SDK Path , if you copy this project other dir, please set TEL_PATH absolute path
+#设置 SDK Path，目前使用的是相对路径，如果你将此工程复制到别的文件夹，请将TEL_PATH设为绝对路径
+# 比如： TEL_PATH := /home/ospanic/Telink_825X_SDK
+#########################################################################################
+TEL_PATH := ../..
 
-# # Each subdirectory must supply rules for building sources it contributes
-# $(OUT_PATH)/%.o: ../../%.S
-# 	@echo 'Building file: $<'
-# 	@echo 'Invoking: TC32 CC/Assembler'
-# 	tc32-elf-gcc -DMCU_CORE_8269 -c -o"$@" "$<"
-# 	@echo 'Finished building: $<'
-# 	@echo ' '
+# Set Project Name
+PROJECT_NAME := bootloader
 
-# ################################################################################
-# # Automatically-generated file. Do not edit! object.mk
-# ################################################################################
+
+#########################################################################################
+# The following content need not be modified by the user!!!!!							#
+#########################################################################################
+PROJECT_PATH := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+OUT_PATH :=$(PROJECT_PATH)/out
+
 
 GCC_FLAGS := \
 -ffunction-sections \
@@ -53,17 +54,10 @@ INCLUDE_PATHS := -I$(TEL_PATH)/components -I$(PROJECT_PATH)
 
 GCC_FLAGS += $(TEL_CHIP)
 
-ifeq ($(BOOT_MODE), need_bootloader)
-	LS_FLAGS := $(TEL_PATH)/components/app.link
-else
-	LS_FLAGS := $(TEL_PATH)/components/boot.link
-endif
-
-
 #include SDK makefile
 #-include $(TEL_PATH)/make/boot_8258.mk
 -include $(TEL_PATH)/make/application.mk
--include $(TEL_PATH)/make/boot.mk
+#-include $(TEL_PATH)/make/boot.mk
 -include $(TEL_PATH)/make/common.mk
 -include $(TEL_PATH)/make/drivers_8258.mk
 -include $(TEL_PATH)/make/vendor_common.mk
@@ -87,7 +81,7 @@ main-build: $(ELF_FILE) secondary-outputs
 # Tool invocations
 $(ELF_FILE): $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
-	@tc32-elf-ld --gc-sections -L $(TEL_PATH)/components/proj_lib -T $(LS_FLAGS) -o $(ELF_FILE) $(OBJS) $(USER_OBJS) $(LIBS)
+	@tc32-elf-ld --gc-sections -L $(TEL_PATH)/components/proj_lib -T ./boot/bootloader.link -o $(ELF_FILE) $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

@@ -73,7 +73,7 @@ static u16 serviceChangeVal[2] = {0};
 
 static u8 serviceChangeCCC[2] = {0,0};
 
-#define MY_DEV_NAME                        "KModule"
+#define MY_DEV_NAME                        "Ai-Thinker"
 extern  u8 ble_devName[];
 
 static const u8 my_PnPtrs [] = {0x02, 0x8a, 0x24, 0x66, 0x82, 0x01, 0x00};

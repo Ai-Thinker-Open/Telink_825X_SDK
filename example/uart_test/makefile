@@ -30,6 +30,7 @@ TEL_PATH := ../..
 # Set Project Name
 PROJECT_NAME := uart_test
 
+BOOT_MODE := need_bootloader
 
 #########################################################################################
 # The following content need not be modified by the user!!!!!							#

@@ -22,14 +22,9 @@
 #include "tl_common.h"
 #include "drivers.h"
 
-extern void app_uart_irq_proc(void);
+extern void uart_print(char * str);
 extern void app_uart_init(void);
 extern void app_uart_loop(void);
-
-_attribute_my_ram_code_ void irq_handler(void)
-{
-	app_uart_irq_proc();
-}
 
 void system_init()
 {
@@ -66,6 +61,8 @@ int main (void)
 	system_init();
 
 	app_uart_init();
+
+	uart_print("boot loader ready\r\n");
 
 	while (1) 
 	{

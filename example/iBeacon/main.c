@@ -30,7 +30,7 @@ extern void user_init_deepRetn();
 
 extern void main_loop (void);
 
-_attribute_ram_code_ void irq_handler(void)
+_attribute_my_ram_code_ void irq_handler(void)
 {
 	app_uart_irq_proc();
 

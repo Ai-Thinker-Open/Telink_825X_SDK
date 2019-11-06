@@ -22,8 +22,13 @@
 #include "tl_common.h"
 #include "drivers.h"
 
-#define UART_DATA_LEN    12      //data max ?    (UART_DATA_LEN+4) must 16 byte aligned
+volatile unsigned char uart_rx_flag=0;
+volatile unsigned char uart_dmairq_tx_cnt=0;
+volatile unsigned char uart_dmairq_rx_cnt=0;
+volatile unsigned int  uart_ndmairq_cnt=0;
+volatile unsigned char uart_ndmairq_index=0;
 
+#define UART_DATA_LEN    12+256    //data max ?    (UART_DATA_LEN+4) must 16 byte aligned 256 + 16 
 typedef struct{
 	unsigned int dma_len;        // dma len must be 4 byte
 	unsigned char data[UART_DATA_LEN];
@@ -35,35 +40,34 @@ uart_data_t trans_buff = {0, {0,} };
 
 void app_uart_init(void)
 {
-	WaitMs(1500);  //leave enough time for SWS_reset when power on
+	WaitMs(2000);  //leave enough time for SWS_reset when power on
 
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
-	uart_recbuff_init( (unsigned short *)&rec_buff, sizeof(rec_buff));
+	uart_recbuff_init( (unsigned char *)&rec_buff, sizeof(rec_buff));
 
 	uart_gpio_set(UART_TX_PB1, UART_RX_PB0);// uart tx/rx pin set
 
 	uart_reset();  //will reset uart digital registers from 0x90 ~ 0x9f, so uart setting must set after this reset
 
-	//baud rate: 9600
+	//baud rate: 115200
 	#if (CLOCK_SYS_CLOCK_HZ == 16000000)
 //		uart_init(118, 13, PARITY_NONE, STOP_BIT_ONE);
 		uart_init(9, 13, PARITY_NONE, STOP_BIT_ONE);
 	#elif (CLOCK_SYS_CLOCK_HZ == 24000000)
-		uart_init(12, 15, PARITY_NONE, STOP_BIT_ONE);
+		uart_init(12, 3, PARITY_NONE, STOP_BIT_ONE);
 	#endif
 
 	uart_dma_enable(1, 1); 	//uart data in hardware buffer moved by dma, so we need enable them first
 
 	irq_set_mask(FLD_IRQ_DMA_EN);
-
 	dma_chn_irq_enable(FLD_DMA_CHN_UART_RX | FLD_DMA_CHN_UART_TX, 1);   	//uart Rx/Tx dma irq enable
 
 	uart_irq_enable(0, 0);  	//uart Rx/Tx irq no need, disable them
 
-	irq_enable();
+	//irq_enable();
 }
 
-void at_print(char * str)
+void uart_print(char * str)
 {
 	while(*str)
 	{
@@ -85,7 +89,7 @@ void at_print(char * str)
 	}
 }
 
-void at_send(char * data, u32 len)
+void uart_send(char * data, u32 len)
 {
 	while(len > UART_DATA_LEN)
 	{
@@ -111,44 +115,91 @@ void at_send(char * data, u32 len)
 	}
 }
 
-extern u32 device_in_connection_state;
+enum{
+    CMD_VRSN = 0x00,
+	CMD_WRTE ,
+	CMD_READ ,
+	CMD_ERAS ,
+};
 
-void app_uart_irq_proc(void)
+// /**
+//  * @brief This function serves to erase a sector.
+//  * @param[in]   addr the start address of the sector needs to erase.
+//  * @return none
+//  */
+// _attribute_ram_code_ void flash_erase_sector(unsigned long addr);
+
+// /**
+//  * @brief This function writes the buffer's content to a page.
+//  * @param[in]   addr the start address of the page
+//  * @param[in]   len the length(in byte) of content needs to write into the page
+//  * @param[in]   buf the start address of the content needs to write into
+//  * @return none
+//  */
+// _attribute_ram_code_ void flash_write_page(unsigned long addr, unsigned long len, unsigned char *buf);
+
+// /**
+//  * @brief This function reads the content from a page to the buf.
+//  * @param[in]   addr the start address of the page
+//  * @param[in]   len the length(in byte) of content needs to read out from the page
+//  * @param[out]  buf the start address of the buffer
+//  * @return none
+//  */
+// _attribute_ram_code_ void flash_read_page(unsigned long addr, unsigned long len, unsigned char *buf);
+
+int flash_write(unsigned long addr, unsigned char *buf)
 {
-	unsigned char uart_dma_irqsrc;
-	//1. UART irq
-	uart_dma_irqsrc = dma_chn_irq_status_get();///in function,interrupt flag have already been cleared,so need not to clear DMA interrupt flag here
-
-	if(uart_dma_irqsrc & FLD_DMA_CHN_UART_RX)
+	if(addr&0x0fff == 0) //擦除Flash
 	{
-		//Received uart data in rec_buff, user can copy data here
-		// u_sprintf(print_buff,"%d", rec_buff.dma_len);
-		//at_print("uart data\r\n");
+		flash_erase_sector(addr);
+	}
 
-		if(device_in_connection_state == 0)
+	flash_write_page(addr, 256, buf);
+}
+char buff[128] = { 0 };
+unsigned long addr;
+void app_uart_loop(void)
+{
+
+	if(rec_buff.dma_len > 0)
+	{
+		if(rec_buff.data[1] * 256 + rec_buff.data[2] == rec_buff.dma_len - 3)
 		{
-			at_data_process(rec_buff.data, rec_buff.dma_len);
-			rec_buff.dma_len = 0;
+			switch (rec_buff.data[0])
+			{
+				case CMD_VRSN:
+					addr = rec_buff.data[3];
+					addr <<= 8;  addr += rec_buff.data[4];
+					addr <<= 8;  addr += rec_buff.data[5];
+					addr <<= 8;  addr += rec_buff.data[6];
+
+					flash_write(addr, rec_buff.data + 8);
+
+					sprintf(buff, "OK\r\n");
+					break;
+
+				case CMD_WRTE:
+					sprintf(buff, "Write is 00 01\r\n", rec_buff.dma_len );
+					break;
+
+				case CMD_READ:
+					sprintf(buff, "Read is 00 01\r\n", rec_buff.dma_len );
+					break;
+				
+				default:
+					break;
+			}
+			uart_print(buff);
+			WaitMs(30);
 		}
 		else
 		{
-			
+			sprintf(buff, "cmd error : %d\r\n", rec_buff.dma_len );
+			uart_print(buff);
+			WaitMs(30);
 		}
+		
 
-		dma_chn_irq_status_clr(FLD_DMA_CHN_UART_RX);
-	}
-
-	if(uart_dma_irqsrc & FLD_DMA_CHN_UART_TX)
-	{
-		dma_chn_irq_status_clr(FLD_DMA_CHN_UART_TX);
-	}
-}
-
-void app_uart_loop()
-{
-	if((rec_buff.dma_len > 0) && (device_in_connection_state == 1))
-	{
-		bls_att_pushNotifyData(SPP_SERVER_TO_CLIENT_DP_H, rec_buff.data, rec_buff.dma_len); //release
 		rec_buff.dma_len = 0;
 	}
 }

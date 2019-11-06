@@ -20,7 +20,7 @@
  *
  *******************************************************************************************************/
 
-#ifdef MCU_STARTUP_8258_RET_16K
+#ifdef MCU_BOOT_8258_RET_16K
 
 #ifndef __LOAD_RAM_SIZE__
 #define	__LOAD_RAM_SIZE__		0xc
@@ -66,19 +66,18 @@ __start:					@ MUST,  referenced by boot.link
 @	.word	(BUILD_VERSION)
 	.org 0x8
 	.word	(0x544c4e4b)
-	.word	(0x00880000 + _ram_use_size_div_16_)
-@	.word	(0x00880000 + 0x400)
+@	.word	(0x00880000 + _ram_use_size_div_16_)
+	.word	(0x00880000 + 0xb33)
 
 	.org 0x10
-	tj		__irq
+	tj	__irq
+	
 	.org 0x18
 	.word	(_bin_size_)
 @********************************************************************************************************
 @                                   LOW-LEVEL INITIALIZATION
 @********************************************************************************************************
 	.extern  main
-
-
 
 	.org 0x20
 	.align 4
@@ -116,10 +115,12 @@ start_suspend:
 __suspend_data:
 	.word   (0x80006f)
 
+JUMP_APP:
+	tjl _app_start_
 
 
 __reset:
-
+	
 #if 0
 	@ add debug, PB4 output 1
 	tloadr     	r1, DEBUG_GPIO    @0x80058a  PB oen
@@ -142,8 +143,7 @@ SET_BOOT:
 	tloadr     	r0, BOOT_SEL_D
 	tstorerb	r1, [r0, #0]
 SET_BOOT_END:
-
-
+	
 
 @send flash cmd 0xab to wakeup flash;
 FLASH_WAKEUP_BEGIN:
@@ -163,7 +163,35 @@ TNOP:
 FLASH_WAKEUP_END:
 
 
+	@ bootloader or app by PC5
+	tloadr     	r1, DEBUG_GPIO + 4   @0x8000b8 
+	tmov		r0, #0xc0     
+	tstorerb	r0, [r1, #0]
 
+	tmov		r0, #0x20    @00100000b
+	tstorerb	r0, [r1, #1]    @0x8000b9
+
+	tmov		r0, #96 @32+64      
+	tstorerb	r0, [r1, #2]    @0x8000ba
+
+	tmov		r2,#0
+	tmov        r3,#0xff
+TNOP2:
+	tadd        r2,#1
+	tcmp        r2,r3
+	tjle        TNOP2
+
+	tmov		r0, #0
+	tstorerb	r0, [r1, #2]    @0x8000ba
+
+	tloadr     	r1, DEBUG_GPIO + 8   @0x8000590
+	tloadrb     r0, [r1, #0]         @PC
+
+	tmov		r2, #0x20 @PC5
+	tand        r0, r2
+	tcmp        r0, r2
+
+	tjeq		JUMP_APP	@if PC5 is high, jump to app
 
 	tloadr	r0, FLL_D
 	tloadr	r1, FLL_D+4
@@ -232,7 +260,7 @@ COPY_DATA:
 	tadd		r2, #4
 	tj			COPY_DATA
 COPY_DATA_END:
-
+	 
 #if 0
 SETSPISPEED:
 	tloadr     	r1, DAT0 + 36
@@ -277,6 +305,8 @@ FLL_D:
 
 DEBUG_GPIO:
 	.word	(0x80058a)                  @  PBx oen
+	.word	(0x8000b8)                  @  PBx oen
+	.word	(0x800590)                  @  PBx oen
 
 
 BOOT_SEL_D:
