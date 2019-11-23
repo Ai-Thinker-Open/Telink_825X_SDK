@@ -30,7 +30,7 @@ TEL_PATH := ../..
 # Set Project Name
 PROJECT_NAME := at
 
-BOOT_MODE := need_bootloader
+#BOOT_MODE := need_bootloader
 
 #########################################################################################
 # The following content need not be modified by the user!!!!!							#

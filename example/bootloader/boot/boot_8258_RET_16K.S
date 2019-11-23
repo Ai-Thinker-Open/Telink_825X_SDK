@@ -63,6 +63,7 @@ __start:					@ MUST,  referenced by boot.link
 
 	.org 0x0
 	tj	__reset
+	.word	(0x81A50000)
 @	.word	(BUILD_VERSION)
 	.org 0x8
 	.word	(0x544c4e4b)
@@ -115,10 +116,6 @@ start_suspend:
 __suspend_data:
 	.word   (0x80006f)
 
-JUMP_APP:
-	tjl _app_start_
-
-
 __reset:
 	
 #if 0
@@ -130,20 +127,6 @@ __reset:
 	tmov		r0, #16			@0b 00010000
 	tstorerb	r0, [r1, #1]	@0x800583  PB output
 #endif
-
-SET_BOOT:
-	tmov        r2, #4
-	tloadrb     r1, [r2]		@read form core_840004
-	tmov     	r0, #165    @A5
-	tcmp        r0, r1
-	tjne		SET_BOOT_END
-
-	tmov        r2, #5
-	tloadrb     r1, [r2]		@read form core_840005
-	tloadr     	r0, BOOT_SEL_D
-	tstorerb	r1, [r0, #0]
-SET_BOOT_END:
-	
 
 @send flash cmd 0xab to wakeup flash;
 FLASH_WAKEUP_BEGIN:
@@ -162,7 +145,7 @@ TNOP:
 	tstorerb    r1,[r0,#1]
 FLASH_WAKEUP_END:
 
-
+SET_BOOT:
 	@ bootloader or app by PC5
 	tloadr     	r1, DEBUG_GPIO + 4   @0x8000b8 
 	tmov		r0, #0xc0     
@@ -191,7 +174,13 @@ TNOP2:
 	tand        r0, r2
 	tcmp        r0, r2
 
-	tjeq		JUMP_APP	@if PC5 is high, jump to app
+	tjne		SET_BOOT_END	@if PC5 is LOW, jump to bootload
+
+	tmov        r2, #0x21
+	tloadr     	r0, BOOT_SEL_D
+	tstorerb	r2, [r0, #0]
+SET_BOOT_END:
+
 
 	tloadr	r0, FLL_D
 	tloadr	r1, FLL_D+4

@@ -26,7 +26,7 @@ extern void app_uart_irq_proc(void);
 extern void app_uart_init(void);
 extern void app_uart_loop(void);
 
-_attribute_my_ram_code_ void irq_handler(void)
+_attribute_ram_code_ void irq_handler(void)
 {
 	app_uart_irq_proc();
 }

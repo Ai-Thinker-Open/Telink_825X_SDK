@@ -86,7 +86,7 @@ _attribute_data_retention_	my_fifo_t	blt_rxfifo = {
 //	 Adv Packet, Response Packet
 //////////////////////////////////////////////////////////////////////////////
 const u8 tbl_advData[] = {
-	 0x05, 0x09, 'k', 'H', 'I', 'D',
+	// 0x05, 0x09, 'k', 'H', 'I', 'D',
 	 0x02, 0x01, 0x05, 							// BLE limited discoverable mode and BR/EDR not supported
 	 0x03, 0x19, 0x80, 0x01, 					// 384, Generic Remote Control, Generic category
 	 0x05, 0x02, 0x12, 0x18, 0x0F, 0x18,		// incomplete list of service class UUIDs (0x1812, 0x180F)
@@ -185,12 +185,12 @@ void task_connect (u8 e, u8 *p, int n)
 
 void task_conn_update_req (u8 e, u8 *p, int n)
 {
-
+	//at_print("+UpData\r\n");
 }
 
 void task_conn_update_done (u8 e, u8 *p, int n)
 {
-
+	//at_print("+UpData_Done\r\n");
 }
 
 
@@ -242,6 +242,7 @@ void user_init_normal(void)
 	blc_gap_peripheral_init();    //gap initialization
 	extern void my_att_init ();
 	my_att_init (); //gatt initialization
+	blc_att_setRxMtuSize(250);
 	blc_l2cap_register_handler(blc_l2cap_packet_receive);  	//l2cap initialization
 
 	//Smp Initialization may involve flash write/erase(when one sector stores too much information,

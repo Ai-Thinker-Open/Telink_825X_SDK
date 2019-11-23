@@ -8,9 +8,9 @@
 
 static char *at_result_string[AT_RESULT_CODE_MAX] = 
 {
-    "+OK\r\n",         //AT_RESULT_CODE_OK         = 0x00,
-    "+ERROR(-1)\r\n",  //AT_RESULT_CODE_ERROR      = 0x01,
-    "+ERROR(-2)\r\n",
+    "OK\r\n",         //AT_RESULT_CODE_OK         = 0x00,
+    "ERROR(-1)\r\n",  //AT_RESULT_CODE_ERROR      = 0x01,
+    "ERROR(-2)\r\n",
 };
 
 void at_response_result(unsigned char result_code)
@@ -78,9 +78,12 @@ static unsigned char data_process_parse(char *pbuf,  int mode, int len)
 	return result;
 }
 
+
 //AT命令入口
 void at_data_process(char *pbuf, int len)
 {
+    if (pbuf == NULL || len == 0) return;
+
     if((pbuf[len - 1] == 0x0A) || (pbuf[len - 1] == 0x0D))
     {
         if((pbuf[len - 2] == 0x0A) || (pbuf[len - 2] == 0x0D))
@@ -101,10 +104,9 @@ void at_data_process(char *pbuf, int len)
     
     int mode = AT_CMD_MODE_INVALID;
 
-    if (pbuf == NULL || len == 0) return;
     mode = data_process_cmd_mode(pbuf);
 
-    if (strxcmp("AT",pbuf) != 0)
+    if((strxcmp("AT",pbuf) != 0) && (strxcmp("ATE",pbuf) != 0))
     {
         at_response_result(1);
         return;
@@ -116,6 +118,6 @@ void at_data_process(char *pbuf, int len)
     	return;
     }
 
-    at_response_result(data_process_parse(pbuf + 3, mode, len));
+    at_response_result(data_process_parse(pbuf + 3, mode, len-3));
     return;
 }

@@ -51,7 +51,7 @@ SECTIONS
     PROVIDE(_app_start_ = (0x4000));
     PROVIDE(irq_handler = (0x4200));
 
-    . = 0x1100; 	
+    . = 0x4000; 	
         .text :
         {
         *(.text)

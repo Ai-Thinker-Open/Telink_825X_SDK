@@ -22,7 +22,7 @@
 #include "tl_common.h"
 #include "drivers.h"
 
-#define UART_DATA_LEN    12      //data max ?    (UART_DATA_LEN+4) must 16 byte aligned
+#define UART_DATA_LEN    12+256     //data max ?    (UART_DATA_LEN+4) must 16 byte aligned
 
 typedef struct{
 	unsigned int dma_len;        // dma len must be 4 byte
@@ -84,6 +84,18 @@ void at_print(char * str)
 		WaitMs(2);
 	}
 }
+unsigned char hextab[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+void at_print_hexstr(char * data, u32 len)
+{
+	unsigned char buf[128] = { 0 };
+	for(int i =0; i < len; i ++)
+	{
+		buf[i*3] = hextab[(data[i] >> 4)];
+		buf[i*3 +1] = hextab[(data[i]&0xf)];
+		buf[i*3 +2] = ' ';
+	}
+	at_print(buf);
+}
 
 void at_send(char * data, u32 len)
 {
@@ -125,12 +137,12 @@ void app_uart_irq_proc(void)
 		// u_sprintf(print_buff,"%d", rec_buff.dma_len);
 		//at_print("uart data\r\n");
 
-		if(device_in_connection_state == 0)
+		if(device_in_connection_state == 0) //蓝牙未连接，响应AT指令
 		{
 			at_data_process(rec_buff.data, rec_buff.dma_len);
 			rec_buff.dma_len = 0;
 		}
-		else
+		else //蓝牙已连接，所有数据通过BLE发送出去
 		{
 			
 		}

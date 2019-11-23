@@ -24,6 +24,7 @@
 #include "drivers.h"
 #include "stack/ble/ble.h"
 #include "vendor/common/user_config.h"
+#include "tinyFlash/tinyFlash.h"
 
 extern void user_init_normal();
 extern void user_init_deepRetn();
@@ -69,7 +70,7 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 		user_init_normal ();
 	}
 
-
+	tinyFlash_Init(0x70000,0x4000);
 
 	while (1) {
 #if (MODULE_WATCHDOG_ENABLE)

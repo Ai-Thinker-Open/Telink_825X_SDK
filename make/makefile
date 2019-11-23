@@ -67,6 +67,7 @@ endif
 -include $(TEL_PATH)/make/common.mk
 -include $(TEL_PATH)/make/drivers_8258.mk
 -include $(TEL_PATH)/make/vendor_common.mk
+-include $(TEL_PATH)/make/tinyFlash.mk
 
 #include Project makefile
 -include $(PROJECT_PATH)/project.mk

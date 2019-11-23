@@ -104,9 +104,7 @@ static u8 SppData_2[1] 					= {0};  //SppDataClient2ServerData[20]
 
 
 //SPP data descriptor
-static const u8 Telink_Descriptor_1[] 		 		= "Telink SPP: Module->Phone";
-static const u8 Telink_Descriptor_2[]        		= "Telink SPP: Phone->Module";
-
+static const u8 Telink_Descriptor_1[] 		 		= "Ai-Thinker SPP: Module<->Phone";
 
 //// GAP attribute values
 static const u8 my_devNameCharVal[5] = {
@@ -147,30 +145,14 @@ static const u8 TelinkSppData_1[19] = {
 	CHAR_PROP_READ | CHAR_PROP_WRITE_WITHOUT_RSP | CHAR_PROP_NOTIFY,
 	U16_LO(SPP_SERVER_TO_CLIENT_DP_H), U16_HI(SPP_SERVER_TO_CLIENT_DP_H), TELINK_SPP_DATA_SERVER2CLIENT
 };
-static const u8 TelinkSppData_2[19] = {
-	CHAR_PROP_READ | CHAR_PROP_WRITE_WITHOUT_RSP | CHAR_PROP_NOTIFY,
-	U16_LO(SPP_CLIENT_TO_SERVER_DP_H), U16_HI(SPP_CLIENT_TO_SERVER_DP_H), TELINK_SPP_DATA_CLIENT2SERVER
-};
 
-
-int module_onReceiveData_1(rf_packet_att_write_t *p)
+char buff[64] = {0};
+int module_onReceiveData(rf_packet_att_write_t *p)
 {
 	u8 len = p->l2capLen - 3;
-	at_send(&p->value, len);
-	return 0;
-}
-
-int module_onReceiveData_2(rf_packet_att_write_t *p)
-{
-	u8 len = p->l2capLen - 3;
-	char buff[64] = {0};
-
-	u_sprintf(buff, "\r\nthe data len:%d \r\n data",len);
+	//at_send(&p->value, len);
+	u_sprintf(buff, "len:%d \r\n",len);
 	at_print(buff);
-	at_send(&p->value, len);
-
-	bls_att_pushNotifyData(SPP_CLIENT_TO_SERVER_DP_H, buff, 8); //release
-	
 	return 0;
 }
 
@@ -203,17 +185,12 @@ static const attribute_t my_Attributes[] = {
 
 
 	// 000f - 0016 SPP
-	{9,ATT_PERMISSIONS_READ,2,16,(u8*)(&my_primaryServiceUUID), 	(u8*)(&TelinkSppServiceUUID), 0},
+	{5,ATT_PERMISSIONS_READ,2,16,(u8*)(&my_primaryServiceUUID), 	(u8*)(&TelinkSppServiceUUID), 0},
 
 	{0,ATT_PERMISSIONS_READ,2,sizeof(TelinkSppData_1),(u8*)(&my_characterUUID), 		(u8*)(TelinkSppData_1), 0},				//prop
-	{0,ATT_PERMISSIONS_RDWR,16,sizeof(SppData_1),(u8*)(&TelinkSppDataServer2ClientUUID), (u8*)(SppData_1), (att_readwrite_callback_t)&module_onReceiveData_1},	//value
+	{0,ATT_PERMISSIONS_RDWR,16,sizeof(SppData_1),(u8*)(&TelinkSppDataServer2ClientUUID), (u8*)(SppData_1), (att_readwrite_callback_t)&module_onReceiveData},	//value
 	{0,ATT_PERMISSIONS_RDWR,2,2,(u8*)&clientCharacterCfgUUID,(u8*)(&SppDataServer2ClientDataCCC)},
 	{0,ATT_PERMISSIONS_READ,2,sizeof(Telink_Descriptor_1),(u8*)&userdesc_UUID,(u8*)(&Telink_Descriptor_1)},
-
-	{0,ATT_PERMISSIONS_READ,2,sizeof(TelinkSppData_2),(u8*)(&my_characterUUID), 		(u8*)(TelinkSppData_2), 0},				//prop
-	{0,ATT_PERMISSIONS_RDWR,16,sizeof(SppData_2),(u8*)(&TelinkSppDataClient2ServerUUID), (u8*)(SppData_2), (att_readwrite_callback_t)&module_onReceiveData_2},	//value
-	{0,ATT_PERMISSIONS_RDWR,2,2,(u8*)&clientCharacterCfgUUID,(u8*)(&SppDataServer2ClientDataCCC)},
-	{0,ATT_PERMISSIONS_READ,2,sizeof(Telink_Descriptor_2),(u8*)&userdesc_UUID,(u8*)(&Telink_Descriptor_2)},
 };
 
 void my_att_init (void)
