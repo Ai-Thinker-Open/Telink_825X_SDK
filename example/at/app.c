@@ -41,7 +41,7 @@
 #define 	MY_ADV_INTERVAL_MAX					ADV_INTERVAL_35MS
 
 
-#define		MY_RF_POWER_INDEX					RF_POWER_P3p01dBm
+#define		MY_RF_POWER_INDEX					RF_POWER_P10p46dBm //RF_POWER_P3p01dBm
 
 
 #define		BLE_DEVICE_ADDRESS_TYPE 			BLE_DEVICE_ADDRESS_PUBLIC
@@ -95,6 +95,9 @@ const u8 tbl_advData[] = {
 const u8 tbl_scanRsp [] = {
 		 0x0B, 0x09, 'A', 'i', '-', 'T', 'h', 'i', 'n', 'k', 'e', 'r',
 	};
+
+u8 my_scanRsp_len = 30;
+u8 my_scanRsp[32] = { 0 };
 
 _attribute_data_retention_	u32 device_in_connection_state = 0;
 
@@ -209,6 +212,7 @@ void blt_pm_proc(void)
 #endif
 }
 
+u8  mac_public[6];
 
 void user_init_normal(void)
 {
@@ -218,7 +222,6 @@ void user_init_normal(void)
 
 
 ////////////////// BLE stack initialization ////////////////////////////////////
-	u8  mac_public[6];
 	u8  mac_random_static[6];
 	blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
 
@@ -231,7 +234,7 @@ void user_init_normal(void)
 
 	////// Controller Initialization  //////////
 	blc_ll_initBasicMCU();                      //mandatory
-	blc_ll_initStandby_module(mac_public);				//mandatory
+	blc_ll_initStandby_module(mac_public);		//mandatory
 	blc_ll_initAdvertising_module(mac_public); 	//adv module: 		 mandatory for BLE slave,
 	blc_ll_initConnection_module();				//connection module  mandatory for BLE slave/master
 	blc_ll_initSlaveRole_module();				//slave module: 	 mandatory for BLE slave,
@@ -257,7 +260,19 @@ void user_init_normal(void)
 
 ///////////////////// USER application initialization ///////////////////
 	bls_ll_setAdvData( (u8 *)tbl_advData, sizeof(tbl_advData) );
-	bls_ll_setScanRspData( (u8 *)tbl_scanRsp, sizeof(tbl_scanRsp));
+
+	if( tinyFlash_Read(1, my_scanRsp + 2, &my_scanRsp_len) == 0) //用户自定义蓝牙名称
+	{
+		my_scanRsp_len += 2;
+		my_scanRsp[0] = my_scanRsp_len - 1;
+		my_scanRsp[1] = 0x09;
+		bls_ll_setScanRspData( (u8 *)my_scanRsp, my_scanRsp_len);
+		//at_print(my_scanRsp + 2);
+	}
+	else //默认蓝牙名称
+	{
+		bls_ll_setScanRspData( (u8 *)tbl_scanRsp, sizeof(tbl_scanRsp));
+	}
 
 	////////////////// config adv packet /////////////////////
 #if (BLE_REMOTE_SECURITY_ENABLE)

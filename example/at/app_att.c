@@ -150,9 +150,9 @@ char buff[64] = {0};
 int module_onReceiveData(rf_packet_att_write_t *p)
 {
 	u8 len = p->l2capLen - 3;
-	//at_send(&p->value, len);
-	u_sprintf(buff, "len:%d \r\n",len);
-	at_print(buff);
+	at_send(&p->value, len);
+	//u_sprintf(buff, "len:%d \r\n",len);
+	//at_print(buff);
 	return 0;
 }
 

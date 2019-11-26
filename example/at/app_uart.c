@@ -32,8 +32,23 @@ typedef struct{
 uart_data_t rec_buff = {0,  {0, } };
 uart_data_t trans_buff = {0, {0,} };
 
+u8 baud_buf[1] = { 6 };
+u8 ATE = 0;
 
-void app_uart_init(void)
+typedef enum {
+    AT_BAUD_2400 = 0,
+	AT_BAUD_4800,
+	AT_BAUD_9600,
+	AT_BAUD_19200,
+	AT_BAUD_38400,
+	AT_BAUD_57600,
+	AT_BAUD_115200,
+	AT_BAUD_230400,
+	AT_BAUD_460800,
+	AT_BAUD_921600,
+} AT_BAUD;
+
+void app_uart_init(AT_BAUD baud)
 {
 	WaitMs(1500);  //leave enough time for SWS_reset when power on
 
@@ -44,13 +59,22 @@ void app_uart_init(void)
 
 	uart_reset();  //will reset uart digital registers from 0x90 ~ 0x9f, so uart setting must set after this reset
 
-	//baud rate: 9600
-	#if (CLOCK_SYS_CLOCK_HZ == 16000000)
-//		uart_init(118, 13, PARITY_NONE, STOP_BIT_ONE);
-		uart_init(9, 13, PARITY_NONE, STOP_BIT_ONE);
-	#elif (CLOCK_SYS_CLOCK_HZ == 24000000)
-		uart_init(12, 15, PARITY_NONE, STOP_BIT_ONE);
-	#endif
+	switch (baud)
+	{
+		case AT_BAUD_2400  : uart_init(999, 9, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_4800  : uart_init(499, 9, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_9600  : uart_init(249, 9, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_19200 : uart_init(124, 9, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_38400 : uart_init(64,  9, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_57600 : uart_init(24, 15, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_115200: uart_init(12, 15, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_230400: uart_init(6,  15, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_460800: uart_init(6,   7, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_921600: uart_init(6,   3, PARITY_NONE, STOP_BIT_ONE); break;
+
+		default : break;
+	};
+	 	
 
 	uart_dma_enable(1, 1); 	//uart data in hardware buffer moved by dma, so we need enable them first
 
@@ -63,6 +87,18 @@ void app_uart_init(void)
 	irq_enable();
 }
 
+void my_gpio_init(void)
+{
+	
+	gpio_set_func(GPIO_PC5, AS_GPIO);
+
+	gpio_setup_up_down_resistor(GPIO_PC5, PM_PIN_PULLUP_10K);
+
+	gpio_set_output_en(GPIO_PC5, 0);//enable output
+
+	gpio_set_input_en(GPIO_PC5, 1); //disable input
+}
+
 void at_print(char * str)
 {
 	while(*str)
@@ -73,7 +109,7 @@ void at_print(char * str)
 		{
 			uart_dma_send((unsigned char*)&trans_buff);
 			trans_buff.dma_len = 0;
-			WaitMs(2);
+			WaitMs(20);
 		}
 	}
 
@@ -81,7 +117,7 @@ void at_print(char * str)
 	{
 		uart_dma_send((unsigned char*)&trans_buff);
 		trans_buff.dma_len = 0;
-		WaitMs(2);
+		WaitMs(20);
 	}
 }
 unsigned char hextab[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
@@ -109,7 +145,7 @@ void at_send(char * data, u32 len)
 
 		uart_dma_send((unsigned char*)&trans_buff);
 		trans_buff.dma_len = 0;
-		WaitMs(2);
+		WaitMs(10);
 		
 	}
 
@@ -137,8 +173,13 @@ void app_uart_irq_proc(void)
 		// u_sprintf(print_buff,"%d", rec_buff.dma_len);
 		//at_print("uart data\r\n");
 
-		if(device_in_connection_state == 0) //蓝牙未连接，响应AT指令
+		if((device_in_connection_state == 0) || ((gpio_read(GPIO_PC5) == 0))) //蓝牙未连接，或者PC5为低电平，响应AT指令
 		{
+			if(ATE)
+			{
+				uart_dma_send((unsigned char*)&rec_buff);
+			}
+
 			at_data_process(rec_buff.data, rec_buff.dma_len);
 			rec_buff.dma_len = 0;
 		}

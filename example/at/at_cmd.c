@@ -8,9 +8,9 @@
 
 static char *at_result_string[AT_RESULT_CODE_MAX] = 
 {
-    "OK\r\n",         //AT_RESULT_CODE_OK         = 0x00,
-    "ERROR(-1)\r\n",  //AT_RESULT_CODE_ERROR      = 0x01,
-    "ERROR(-2)\r\n",
+    "\r\nOK\r\n",         //AT_RESULT_CODE_OK         = 0x00,
+    "\r\nERROR(-1)\r\n",  //AT_RESULT_CODE_ERROR      = 0x01,
+    "\r\nERROR(-2)\r\n",
 };
 
 void at_response_result(unsigned char result_code)

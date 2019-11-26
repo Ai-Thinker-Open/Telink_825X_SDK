@@ -30,6 +30,8 @@ extern void user_init_normal();
 extern void user_init_deepRetn();
 
 extern void main_loop (void);
+extern u8 baud_buf[];
+extern u8 ATE;
 
 _attribute_my_ram_code_ void irq_handler(void)
 {
@@ -59,9 +61,19 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 
 	blc_app_loadCustomizedParameters();  //load customized freq_offset cap value
 
-	app_uart_init();
+	tinyFlash_Init(0x70000,0x4000); //初始化KV存储系统
 
-	at_print("Ai-Thinker Ble AT V 0.1\r\nready\r\n");
+	u8 len =1;
+
+	tinyFlash_Read(2, baud_buf, &len); //读取波特率
+
+	app_uart_init(baud_buf[0]);  //初始化串口
+
+	my_gpio_init(); //初始化GPIO
+
+	tinyFlash_Read(3, &ATE, &len); //读取ATE
+
+	at_print("    \r\nAi-Thinker Ble AT V 0.1\r\n+READY\r\n");
 	
 	if( deepRetWakeUp ){
 		user_init_deepRetn ();
@@ -69,8 +81,6 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 	else{
 		user_init_normal ();
 	}
-
-	tinyFlash_Init(0x70000,0x4000);
 
 	while (1) {
 #if (MODULE_WATCHDOG_ENABLE)

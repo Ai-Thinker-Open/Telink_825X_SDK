@@ -36,7 +36,7 @@ extern "C" {
 
 
 /////////////////// Clock  /////////////////////////////////
-#define CLOCK_SYS_CLOCK_HZ  	16000000
+#define CLOCK_SYS_CLOCK_HZ  	24000000
 
 enum{
 	CLOCK_SYS_CLOCK_1S = CLOCK_SYS_CLOCK_HZ,
