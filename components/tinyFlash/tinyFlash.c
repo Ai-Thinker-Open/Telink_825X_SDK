@@ -122,7 +122,7 @@ int tinyFlash_Read(unsigned char KEY, unsigned char * outbuf, unsigned char * le
         }
     }
     
-    return 0;
+    return -1;
 }
 
 unsigned long  g_addr = 0;
@@ -245,6 +245,14 @@ void tinyFlash_Swap() //扇区使用完了，需要清理数据，才能存储�
     tinyFlash_Used_Addr = _new_addr_start;
 }
 
+/*擦除所有扇区*/
+void tinyFlash_Format(void)
+{
+    flash_erase_sector(tinyFlash_Used_Addr);//擦除旧扇区
+    flash_erase_sector(tinyFlash_Swap_Addr);//擦除旧扇区
+} 
+
+/*读取某片区域的数据，存放到全局变量，主要用于Debug*/
 void tinyFlash_Debug(unsigned long addr)
 {
     flash_read_page(addr, TINY_BUFFER_SIZE, _buf);
