@@ -150,9 +150,21 @@ char buff[64] = {0};
 int module_onReceiveData(rf_packet_att_write_t *p)
 {
 	u8 len = p->l2capLen - 3;
-	at_send(&p->value, len);
-	//u_sprintf(buff, "len:%d \r\n",len);
-	//at_print(buff);
+
+	if((gpio_read(GPIO_PC5) == 0)) //AT模式
+	{
+		u_sprintf(buff, "\r\n+DATA:%d,", len);
+		at_print(buff);
+
+		at_send(&p->value, len);
+
+		at_print("\r\n");
+	}
+	else
+	{
+		at_send(&p->value, len);
+	}
+
 	return 0;
 }
 

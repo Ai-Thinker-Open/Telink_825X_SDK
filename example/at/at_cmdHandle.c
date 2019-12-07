@@ -35,7 +35,7 @@ static unsigned char atCmd_ATE1(char *pbuf,  int mode, int lenth)
 
 static unsigned char atCmd_GMR(char *pbuf,  int mode, int lenth)
 {
-	at_print("\r\n+VER:0.1");
+	at_print("\r\n+VER:0.2");
 	return 0;
 }
 
@@ -237,7 +237,43 @@ static unsigned char atCmd_State(char *pbuf,  int mode, int lenth)
 	return 0;
 }
 
+//AT+SEND=46,4646464646546\r\n
+static unsigned char atCmd_Send(char *pbuf,  int mode, int lenth)
+{
+	if(device_in_connection_state == 0) //如果蓝牙未连接,或者未开启Notify
+	{
+		return 2;
+	}
 
+	char *tmp = strchr(pbuf,',');
+	int len =0;
+
+	if((tmp != NULL) && ((tmp - pbuf) < 4))
+	{
+		char *data = tmp + 1; //要发送的数据的指针
+		char *len_p = pbuf;	 //数据长度指针
+		//解析数据长度
+		while(tmp != len_p)
+		{
+			len = len * 10 + (len_p[0] - '0');
+			len_p++;
+		}
+
+		//检验长度是否一致
+		if((len + (data - pbuf)) != lenth)
+		{
+			return 2;
+		}
+
+		bls_att_pushNotifyData(SPP_SERVER_TO_CLIENT_DP_H, data, len); //release
+
+		return 0;
+	}
+	else
+	{
+		return 2;
+	}
+}
 
 _at_command_t gAtCmdTb_writeRead[] =
 { 
@@ -246,6 +282,7 @@ _at_command_t gAtCmdTb_writeRead[] =
 	{ "MAC", 	atCmd_Mac,	"Set/Read BT MAC\r\n"},
 	{ "READ", 	atCmd_Read,	"Read Flash Data\r\n"},
 	{ "STATE", 	atCmd_State,"Read BT Connect State\r\n"},
+	{ "SEND", 	atCmd_Send, "Send data to phone\r\n"},
 	{0, 	0,	0}
 };
 

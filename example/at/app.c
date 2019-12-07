@@ -159,7 +159,7 @@ void ble_remote_terminate(u8 e,u8 *p, int n) //*p is terminate reason
 
 	advertise_begin_tick = clock_time();
 
-	at_print("+BLE_DISCONNECTED\r\n");
+	at_print("\r\n+BLE_DISCONNECTED\r\n");
 }
 
 _attribute_ram_code_ void user_set_rf_power (u8 e, u8 *p, int n)
@@ -180,7 +180,7 @@ void task_connect (u8 e, u8 *p, int n)
 
 	device_in_connection_state = 1;//
 
-	at_print("+BLE_CONNECTED\r\n");
+	at_print("\r\n+BLE_CONNECTED\r\n");
 
 	interval_update_tick = clock_time() | 1; //none zero
 }

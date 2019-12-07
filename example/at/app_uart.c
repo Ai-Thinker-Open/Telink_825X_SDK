@@ -29,8 +29,25 @@ typedef struct{
 	unsigned char data[UART_DATA_LEN];
 }uart_data_t;
 
-uart_data_t rec_buff = {0,  {0, } };
 uart_data_t trans_buff = {0, {0,} };
+
+#define UART_RXFIFO_NUM			8
+
+_attribute_data_retention_  u8 		 	uart_rx_fifo_b[UART_DATA_LEN * UART_RXFIFO_NUM] = {0};
+_attribute_data_retention_	my_fifo_t	uart_rx_fifo = {
+												UART_DATA_LEN,
+												UART_RXFIFO_NUM,
+												0,
+												0,
+												uart_rx_fifo_b,};
+
+// _attribute_data_retention_  u8 		 	ble_rx_fifo_b[UART_RXFIFO_SIZE * UART_RXFIFO_NUM] = {0};
+// _attribute_data_retention_	my_fifo_t	ble_rx_fifo = {
+// 												UART_RXFIFO_SIZE,
+// 												UART_RXFIFO_NUM,
+// 												0,
+// 												0,
+// 												ble_rx_fifo_b,};
 
 u8 baud_buf[1] = { 6 };
 u8 ATE = 0;
@@ -53,7 +70,7 @@ void app_uart_init(AT_BAUD baud)
 	WaitMs(1500);  //leave enough time for SWS_reset when power on
 
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
-	uart_recbuff_init( (unsigned short *)&rec_buff, sizeof(rec_buff));
+	uart_recbuff_init( (unsigned short *)my_fifo_wptr(&uart_rx_fifo), UART_DATA_LEN);
 
 	uart_gpio_set(UART_TX_PB1, UART_RX_PB0);// uart tx/rx pin set
 
@@ -173,19 +190,12 @@ void app_uart_irq_proc(void)
 		// u_sprintf(print_buff,"%d", rec_buff.dma_len);
 		//at_print("uart data\r\n");
 
-		if((device_in_connection_state == 0) || ((gpio_read(GPIO_PC5) == 0))) //蓝牙未连接，或者PC5为低电平，响应AT指令
+		u8* w = my_fifo_wptr(&uart_rx_fifo);
+		if((w[0]!=0) || (w[1]!=0))
 		{
-			if(ATE)
-			{
-				uart_dma_send((unsigned char*)&rec_buff);
-			}
-
-			at_data_process(rec_buff.data, rec_buff.dma_len);
-			rec_buff.dma_len = 0;
-		}
-		else //蓝牙已连接，所有数据通过BLE发送出去
-		{
-			
+			my_fifo_next(&uart_rx_fifo); //写指针前移
+			u8* p = my_fifo_wptr(&uart_rx_fifo); //获取当前写指针
+			reg_dma_uart_rx_addr = (u16)((u32)p);  //switch uart RX dma address
 		}
 
 		dma_chn_irq_status_clr(FLD_DMA_CHN_UART_RX);
@@ -197,11 +207,26 @@ void app_uart_irq_proc(void)
 	}
 }
 
+u8 * data = NULL;
 void app_uart_loop()
 {
-	if((rec_buff.dma_len > 0) && (device_in_connection_state == 1))
+	if(data = my_fifo_get(&uart_rx_fifo)) //从fifo中获取数据
 	{
-		bls_att_pushNotifyData(SPP_SERVER_TO_CLIENT_DP_H, rec_buff.data, rec_buff.dma_len); //release
-		rec_buff.dma_len = 0;
+		uart_data_t * p = data;
+
+		if((device_in_connection_state == 0) || ((gpio_read(GPIO_PC5) == 0))) //蓝牙未连接，或者PC5为低电平，响应AT指令
+		{
+			if(ATE)
+			{
+				uart_dma_send((unsigned char*)p);
+			}
+
+			at_data_process(p->data, p->dma_len);
+		}
+		else //透传模式且蓝牙已连接，所有数据通过BLE发送出去
+		{
+			bls_att_pushNotifyData(SPP_SERVER_TO_CLIENT_DP_H, p->data, p->dma_len); //release
+		}
+		my_fifo_pop(&uart_rx_fifo);
 	}
 }
