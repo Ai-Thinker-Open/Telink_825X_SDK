@@ -27,6 +27,7 @@
 extern "C" {
 #endif
 
+#define AT_VERSION "V0.2"
 
 /////////////////// FEATURE SELECT /////////////////////////////////
 #define BLE_APP_PM_ENABLE					0

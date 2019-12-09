@@ -73,7 +73,7 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 
 	tinyFlash_Read(3, &ATE, &len); //读取ATE
 
-	at_print("    \r\nAi-Thinker Ble AT V 0.1\r\n+READY\r\n");
+	at_print("    \r\nAi-Thinker Ble AT "AT_VERSION"\r\n+READY\r\n");
 	
 	if( deepRetWakeUp ){
 		user_init_deepRetn ();
