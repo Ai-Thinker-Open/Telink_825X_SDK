@@ -33,7 +33,7 @@ extern void main_loop (void);
 extern u8 baud_buf[];
 extern u8 ATE;
 
-_attribute_my_ram_code_ void irq_handler(void)
+_attribute_ram_code_ void irq_handler(void)
 {
 	app_uart_irq_proc();
 
@@ -72,8 +72,6 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 	my_gpio_init(); //初始化GPIO
 
 	tinyFlash_Read(3, &ATE, &len); //读取ATE
-
-	at_print("    \r\nAi-Thinker Ble AT "AT_VERSION"\r\n+READY\r\n");
 	
 	if( deepRetWakeUp ){
 		user_init_deepRetn ();
@@ -81,6 +79,11 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 	else{
 		user_init_normal ();
 	}
+	//WaitMs(10);
+	at_print("    \r\nAi-Thinker Ble AT "AT_VERSION"\r\n+READY\r\n");
+
+
+	WaitMs(10);
 
 	while (1) {
 #if (MODULE_WATCHDOG_ENABLE)

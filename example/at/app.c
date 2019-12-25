@@ -218,8 +218,8 @@ void user_init_normal(void)
 {
 	//random number generator must be initiated here( in the beginning of user_init_nromal)
 	//when deepSleep retention wakeUp, no need initialize again
-	random_generator_init();  //this is must
 
+	random_generator_init();  //this is must
 
 ////////////////// BLE stack initialization ////////////////////////////////////
 	u8  mac_random_static[6];
