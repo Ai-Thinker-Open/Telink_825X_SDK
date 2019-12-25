@@ -22,6 +22,8 @@
 #include "tl_common.h"
 #include "drivers.h"
 
+#define BOOT_VERSION "V0.1"
+
 volatile unsigned char uart_rx_flag=0;
 volatile unsigned char uart_dmairq_tx_cnt=0;
 volatile unsigned char uart_dmairq_rx_cnt=0;
@@ -116,10 +118,10 @@ void uart_send(char * data, u32 len)
 }
 
 enum{
-    CMD_VRSN = 0x00,
-	CMD_WRTE ,
-	CMD_READ ,
-	CMD_ERAS ,
+    CMD_VRSN = 0x00, //??Boot???
+	CMD_WRTE , 		 //?Flash
+	CMD_READ ,       //?Flash
+	CMD_ERAS ,       //??Flash
 };
 
 // /**
@@ -167,7 +169,11 @@ void app_uart_loop(void)
 		{
 			switch (rec_buff.data[0])
 			{
-				case CMD_VRSN:
+				case CMD_VRSN: //???????
+					sprintf(buff, BOOT_VERSION"\r\n");
+					break;
+
+				case CMD_WRTE: //?Flash
 					addr = rec_buff.data[3];
 					addr <<= 8;  addr += rec_buff.data[4];
 					addr <<= 8;  addr += rec_buff.data[5];
@@ -178,14 +184,12 @@ void app_uart_loop(void)
 					sprintf(buff, "OK\r\n");
 					break;
 
-				case CMD_WRTE:
-					sprintf(buff, "Write is 00 01\r\n", rec_buff.dma_len );
-					break;
-
-				case CMD_READ:
+				case CMD_READ: //?Flash
 					sprintf(buff, "Read is 00 01\r\n", rec_buff.dma_len );
 					break;
-				
+
+				case CMD_ERAS: //??Flash
+
 				default:
 					break;
 			}
