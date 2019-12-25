@@ -81,7 +81,7 @@ main-build: $(ELF_FILE) secondary-outputs
 # Tool invocations
 $(ELF_FILE): $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
-	@tc32-elf-ld --gc-sections -L $(TEL_PATH)/components/proj_lib -T ./boot/bootloader.link -o $(ELF_FILE) $(OBJS) $(USER_OBJS) $(LIBS)
+	@tc32-elf-ld --gc-sections -L $(TEL_PATH)/components/proj_lib -T ./bootloader.link -o $(ELF_FILE) $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

@@ -63,22 +63,22 @@ __start:					@ MUST,  referenced by boot.link
 
 	.org 0x0
 	tj	__reset
-	.word	(0x81A50000)
 @	.word	(BUILD_VERSION)
 	.org 0x8
 	.word	(0x544c4e4b)
-@	.word	(0x00880000 + _ram_use_size_div_16_)
-	.word	(0x00880000 + 0xb33)
+	.word	(0x00880000 + _ram_use_size_div_16_)
+@	.word	(0x00880000 + 0x400)
 
 	.org 0x10
-	tj	__irq
-	
+	tj		__irq
 	.org 0x18
 	.word	(_bin_size_)
 @********************************************************************************************************
 @                                   LOW-LEVEL INITIALIZATION
 @********************************************************************************************************
 	.extern  main
+
+
 
 	.org 0x20
 	.align 4
@@ -116,17 +116,99 @@ start_suspend:
 __suspend_data:
 	.word   (0x80006f)
 
+
+
 __reset:
-	
-#if 0
-	@ add debug, PB4 output 1
-	tloadr     	r1, DEBUG_GPIO    @0x80058a  PB oen
-	tmov		r0, #139      @0b 11101111
+
+@********************************************************************************************************
+@                                UART BOOTLOADER IF PC5 IS LOW , ENTER UART BOOT
+@********************************************************************************************************
+UART_BOOT:
+	@ bootloader or app by PC5
+	tloadr     	r1, DEBUG_GPIO + 4   @0x8000b8 
+	tmov		r0, #0xc0     
 	tstorerb	r0, [r1, #0]
 
-	tmov		r0, #16			@0b 00010000
-	tstorerb	r0, [r1, #1]	@0x800583  PB output
-#endif
+	tmov		r0, #0x20    		@00100000b
+	tstorerb	r0, [r1, #1]    	@0x8000b9
+
+	tmov		r0, #96 @32+64      
+	tstorerb	r0, [r1, #2]    	@0x8000ba
+
+	tmov		r2,#0
+	tmov        r3,#0xff
+BOOT_TNOP:
+	tadd        r2,#1
+	tcmp        r2,r3
+	tjle        BOOT_TNOP
+
+	tmov		r0, #0
+	tstorerb	r0, [r1, #2]    	@0x8000ba
+
+	tloadr     	r1, DEBUG_GPIO + 8   @0x8000590
+	tloadrb     r0, [r1, #0]         @PC
+
+	tmov		r2, #0x20 @PC5
+	tand        r0, r2
+	tcmp        r0, r2
+
+	tjne		UART_BOOT_END	@if PC5 is LOW, jump to bootload
+
+	tloadr	r1, UART_BOOT_DATA			@ Source addr
+	tloadr	r2, UART_BOOT_DATA + 4		@ Direct addr
+	tloadr	r3, UART_BOOT_DATA + 8		@ Direct addr + Len
+BOOT_COPY:
+	tcmp	r2, r3
+	tjge	BOOT_COPY_END
+	tloadr  r0, [r1, #0]
+	tstorer r0, [r2, #0]
+	tadd    r1, #4
+	tadd    r2, #4
+	tj		BOOT_COPY
+BOOT_COPY_END:
+	
+
+	tloadr	r1, UART_BOOT_DATA + 12		@ Source addr
+	tloadr	r2, UART_BOOT_DATA + 16		@ Direct addr
+	tloadr	r3, UART_BOOT_DATA + 20		@ Direct addr + Len
+	
+	tjl _boot_copy_start_
+
+	.org 0xA0
+USER_COPY:
+	tcmp	r2, r3
+	tjge	USER_COPY_END
+	tloadr  r0, [r1, #0]
+	tstorer r0, [r2, #0]
+	tadd    r1, #4
+	tadd    r2, #4
+	tj		USER_COPY
+USER_COPY_END:
+	.word 	0x980797fc	@tjl 	__start from 0x3FE0
+
+	.align 4
+UART_BOOT_DATA:
+	.word	0xA0
+	.word	0x843FE0
+	.word	0x844000
+	.word	0x040000
+	.word	0x840000
+	.word	0x843FE0
+
+UART_BOOT_END:
+
+SET_BOOT:
+	tmov        r2, #4
+	tloadrb     r1, [r2]		@read form core_840004
+	tmov     	r0, #165    @A5
+	tcmp        r0, r1
+	tjne		SET_BOOT_END
+
+	tmov        r2, #5
+	tloadrb     r1, [r2]		@read form core_840005
+	tloadr     	r0, BOOT_SEL_D
+	tstorerb	r1, [r0, #0]
+SET_BOOT_END:
 
 @send flash cmd 0xab to wakeup flash;
 FLASH_WAKEUP_BEGIN:
@@ -145,43 +227,10 @@ TNOP:
 	tstorerb    r1,[r0,#1]
 FLASH_WAKEUP_END:
 
-SET_BOOT:
-	@ bootloader or app by PC5
-	tloadr     	r1, DEBUG_GPIO + 4   @0x8000b8 
-	tmov		r0, #0xc0     
-	tstorerb	r0, [r1, #0]
 
-	tmov		r0, #0x20    @00100000b
-	tstorerb	r0, [r1, #1]    @0x8000b9
-
-	tmov		r0, #96 @32+64      
-	tstorerb	r0, [r1, #2]    @0x8000ba
-
-	tmov		r2,#0
-	tmov        r3,#0xff
-TNOP2:
-	tadd        r2,#1
-	tcmp        r2,r3
-	tjle        TNOP2
-
-	tmov		r0, #0
-	tstorerb	r0, [r1, #2]    @0x8000ba
-
-	tloadr     	r1, DEBUG_GPIO + 8   @0x8000590
-	tloadrb     r0, [r1, #0]         @PC
-
-	tmov		r2, #0x20 @PC5
-	tand        r0, r2
-	tcmp        r0, r2
-
-	tjne		SET_BOOT_END	@if PC5 is LOW, jump to bootload
-
-	tmov        r2, #0x21
-	tloadr     	r0, BOOT_SEL_D
-	tstorerb	r2, [r0, #0]
-SET_BOOT_END:
-
-
+@********************************************************************************************************
+@                              		 FILL .DATA AND .BSS WITH 0xFF
+@********************************************************************************************************
 	tloadr	r0, FLL_D
 	tloadr	r1, FLL_D+4
 	tloadr	r2, FLL_D+8
@@ -194,16 +243,22 @@ FLL_STK:
 	tj		FLL_STK
 FLL_STK_END:
 
-	tloadr	r0, DAT0
-	tmcsr	r0			
-	tloadr	r0, DAT0 + 8
-	tmov	r13, r0  
+@********************************************************************************************************
+@                              		 UPDATE SP UNDER IRQ/SVC MODE
+@********************************************************************************************************
+	tloadr	r0, DAT0						@r0 = 0x12 IRQ
+	tmcsr	r0								@CPSR=r0
+	tloadr	r0, DAT0 + 8					@r0 = irq_stk + IRQ_STK_SIZE
+	tmov	r13, r0  						@r13/SP= r0    	update SP under IRQ mode
 
-	tloadr	r0, DAT0 + 4
-	tmcsr	r0	
-	tloadr	r0, DAT0 + 12
-	tmov	r13, r0  
+	tloadr	r0, DAT0 + 4					@r0 = 0x13 SVC
+	tmcsr	r0								@CPSR=r0
+	tloadr	r0, DAT0 + 12					@r0 = 0x84c000
+	tmov	r13, r0  						@r13= r0		update SP under SVC mode
 
+@********************************************************************************************************
+@                                    .BSS INITIALIZATION FOR 0
+@********************************************************************************************************
 	tmov	r0, #0
 	tloadr	r1, DAT0 + 16
 	tloadr	r2, DAT0 + 20
@@ -216,46 +271,56 @@ ZERO:
 	tj		ZERO
 ZERO_END:
 
-	tloadr	r1, DAT0 + 28
-	tloadr	r2, DAT0 + 32
 
+@********************************************************************************************************
+@                                    IC TAG INITIALIZATION
+@********************************************************************************************************
 ZERO_TAG:
+	tmov    r0, #0
+	tloadr	r1, DAT0 + 28					@r1 = _ictag_start_
+	tloadr	r2, DAT0 + 32					@r2 = _ictag_end_
+ZERO_TAG_BEGIN:
 	tcmp	r1, r2
-	tjge	ZERO_TAG_END
-	tstorer	r0, [r1, #0]
-	tadd    r1, #4
-	tj		ZERO_TAG
+	tjge	ZERO_TAG_END					@r1>=r2 jump to ZERO_TAG_END
+	tstorer	r0, [r1, #0]					@*(unsigned int*)(_ictag_start_)=r0=0
+	tadd    r1, #4							@r1 = r1 + 4
+	tj		ZERO_TAG_BEGIN					@jump to ZERO_TAG_BEGIN
 ZERO_TAG_END:
 
+@********************************************************************************************************
+@                                    IC CACHE INITIALIZATION
+@********************************************************************************************************
 SETIC:
-	tloadr     	r1, DAT0 + 24
+	tloadr     	r1, DAT0 + 24					@ r1 = 0x80060c
 	tloadr      r0, DAT0 + 36					@ IC tag start
-	tstorerb	r0, [r1, #0]
+	tstorerb	r0, [r1, #0] 					@*(unsigned int*)(0x80060c) = r0
 	tadd    	r0, #1							@ IC tag end
-	tstorerb	r0, [r1, #1]
+	tstorerb	r0, [r1, #1]					@ *(unsigned int*)(0x80060d) = r0
 	@tmov		r0, #0;
 	@tstorerb	r0, [r1, #2]
 
-
-	tloadr		r1, DATA_I
-	tloadr		r2, DATA_I+4
-	tloadr		r3, DATA_I+8
+@********************************************************************************************************
+@                                    DATA SECTION LOAD
+@********************************************************************************************************
+	tloadr		r1, DATA_I				@ r1 = _dstored_
+	tloadr		r2, DATA_I+4			@ r2 = _start_data_
+	tloadr		r3, DATA_I+8			@ r3 = _end_data_
 COPY_DATA:
 	tcmp		r2, r3
-	tjge		COPY_DATA_END
-	tloadr		r0, [r1, #0]
-	tstorer 	r0, [r2, #0]
-	tadd    	r1, #4
-	tadd		r2, #4
-	tj			COPY_DATA
+	tjge		COPY_DATA_END			@ r2>=r3 jump to COPY_DATA_END
+	tloadr		r0, [r1, #0]			@ r0 = *(unsigned int*)(_dstored_)
+	tstorer 	r0, [r2, #0]			@ *(unsigned int*)(_start_data_) = r0
+	tadd    	r1, #4					@ r1 = r1 + 4
+	tadd		r2, #4					@ r2 = r2 + 4
+	tj			COPY_DATA				@ jump to COPY_DATA
 COPY_DATA_END:
-	 
+
 #if 0
 SETSPISPEED:
 	tloadr     	r1, DAT0 + 36
-	tmov		r0, #0xbb		@0x0b for fast read; 0xbb for dual dat/adr
+	tmov		r0, #0xbb				@ 0x0b for fast read; 0xbb for dual dat/adr
 	tstorerb	r0, [r1, #0]
-	tmov		r0, #3			@3 for dual dat/adr
+	tmov		r0, #3					@ 3 for dual dat/adr
 	tstorerb	r0, [r1, #1]
 #endif
 
@@ -264,10 +329,10 @@ END:	tj	END
 
 	.balign	4
 DAT0:
-	.word	0x12			    @IRQ    @0
-	.word	0x13			    @SVC    @4
+	.word	0x12			    		@IRQ    @0
+	.word	0x13			    		@SVC    @4
 	.word	(irq_stk + IRQ_STK_SIZE)
-	.word	(0x850000)		    @12  stack end
+	.word	(0x850000)		    		@12  stack end
 	.word	(_start_bss_)               @16
 	.word	(_end_bss_)                 @20
 	.word	(0x80060c)                  @24
@@ -317,7 +382,7 @@ __irq:
 	tmov		r5, r12
 	tpush		{r0-r5}
 	
-	tjl      	irq_handler
+	@tjl      	irq_handler
 
 	tpop		{r0-r5}
 	tmov		r8, r1

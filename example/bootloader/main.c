@@ -62,7 +62,7 @@ int main (void)
 
 	app_uart_init();
 
-	uart_print("boot loader ready\r\n");
+	uart_print("     \r\nboot loader ready\r\n");
 
 	while (1) 
 	{

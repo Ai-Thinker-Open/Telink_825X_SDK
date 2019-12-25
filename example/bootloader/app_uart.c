@@ -54,7 +54,7 @@ void app_uart_init(void)
 //		uart_init(118, 13, PARITY_NONE, STOP_BIT_ONE);
 		uart_init(9, 13, PARITY_NONE, STOP_BIT_ONE);
 	#elif (CLOCK_SYS_CLOCK_HZ == 24000000)
-		uart_init(12, 3, PARITY_NONE, STOP_BIT_ONE);
+		uart_init(12, 15, PARITY_NONE, STOP_BIT_ONE);
 	#endif
 
 	uart_dma_enable(1, 1); 	//uart data in hardware buffer moved by dma, so we need enable them first

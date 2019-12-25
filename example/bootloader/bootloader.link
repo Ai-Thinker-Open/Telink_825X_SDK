@@ -25,17 +25,27 @@ ENTRY(__start)
 
 SECTIONS
 {
-    . = 0x000;
+    . = 0x0;
         .vectors :
         {
-        *(.vectors)
-        *(.vectors.*)	/* MUST as follows, when compile with -ffunction-sections -fdata-sections, session name may changed */
+            *(.vectors)
+            *(.vectors.*)	/* MUST as follows, when compile with -ffunction-sections -fdata-sections, session name may changed */
+        }
+            .ram_code :
+        {
+            *(.ram_code)
+            *(.ram_code.*)
         }
 
-        .ram_code :
+        .text :
         {
-        *(.ram_code)
-        *(.ram_code.*)
+            *(.text)
+            *(.text.*)
+        }
+        .rodata :
+        {
+            *(.rodata)
+            *(.rodata.*)
         }
         
     . = (((. + 3) / 4)*4);
@@ -47,21 +57,7 @@ SECTIONS
 	PROVIDE(_ramcode_size_div_256_ = (. + 255) / 256);
 	PROVIDE(_ramcode_size_div_16_align_256_ = ( (. + 255) / 256) * 16);
 	PROVIDE(_ramcode_size_align_256_ = ( _ramcode_size_div_16_align_256_)* 16);
-
-    PROVIDE(_app_start_ = (0x4000));
-    PROVIDE(irq_handler = (0x4200));
-
-    . = 0x4000; 	
-        .text :
-        {
-        *(.text)
-        *(.text.*)
-        }
-        .rodata :
-        {
-        *(.rodata)
-        *(.rodata.*)
-        }
+	PROVIDE(_boot_copy_start_ = 0x3FE0);
 
     . = (((. + 3) / 4)*4);
         PROVIDE(_dstored_ = .);
@@ -106,5 +102,5 @@ SECTIONS
     PROVIDE(_ictag_end_ = 0x840000 + (_ramcode_size_div_256_ + 1) * 0x100);
     
 	PROVIDE(_ram_use_size_div_16_ = (_retention_data_end_ - 0x840000  + 15 ) / 16);
-    
+
 }
