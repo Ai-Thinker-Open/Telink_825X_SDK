@@ -42,37 +42,85 @@ __version__ = "0.1 dev"
 
 PYTHON2 = sys.version_info[0] < 3  # True if on pre-Python 3
 
-def connect_chip(port):
-    print("Connect board with " + port + "...")
+def telink_read(_port):
+    data = ''
+    while _port.inWaiting() > 0:
+        data += str(_port.read_all())
+    return data
 
-    _port = serial.Serial(port, 115200)
+def telink_write(_port, data):
+    _port.write(data)
+
+def connect_chip(_port):
+
     _port.setRTS(True)
     _port.setDTR(True)
 
     time.sleep(0.3)
 
     _port.setRTS(False)
-    time.sleep(2)
+    time.sleep(2.3)
     _port.setDTR(False)
 
-    buf = b'\x00\x00\x03'
-    
+    data = telink_read(_port)
 
-    _port.write(buf)
-    data = serial .readline()
-    print(data)
+    if string.find(data,'boot loader ready') != -1:
+        return True
+    return False
 
+def burn(_port, args):
+    print "Burn firmware: " + args.filename
 
+    cmd = 0x03
+    cmd_len = 5
+    flash_addr = 0x4000
+    telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr, 48))
+
+    print "Erase Flash at 0x4000 len 192 KB ... ..."
+
+    time.sleep(2) #wait erase complect
+    result = telink_read(_port)
+
+    if string.find(result,'OK') == -1:
+        print "Erase Flash Fail!"
+
+    cmd = 0x1
+    fo = open(args.filename, "rb")
+    firmware_addr = 0
+    firmware_size = os.path.getsize(args.filename)
+    while True:
+        data = fo.read(256)
+
+        if len(data) < 1: break
+
+        cmd_len = len(data) + 5
+        flash_addr = firmware_addr
+
+        if(flash_addr < 0x4000): flash_addr += 0x30000
+
+        telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr,cmd) + data)
+        firmware_addr += len(data)
+
+        time.sleep(0.05)
+
+        result = telink_read(_port)
+
+        if string.find(result,'OK') == -1:
+            print "Burn firmware Fail!"
+            break
+
+        percent = (firmware_addr *100 / firmware_size)
+        sys.stdout.write("\r" + str(percent) + "%")
+        sys.stdout.flush()
+
+    fo.close()
     _port.close()
-
-def burn(args):
-    print "burn fun"
-
+    
 def main(custom_commandline=None):
 
     parser = argparse.ArgumentParser(description='Telink_Tools.py v%s - Telink BLE Chip Bootloader Utility' % __version__)
 
-    parser.add_argument('-p', help='Serial port device', default='ttyUSB0')
+    parser.add_argument('--port','-p', help='Serial port device', default='ttyUSB0')
 
     subparsers = parser.add_subparsers(dest='operation', help='Run Telink_Tools.py -h for additional help')
     
@@ -100,22 +148,33 @@ def main(custom_commandline=None):
 
     operation_func = globals()[args.operation]
 
-    if PYTHON2:
-        # This function is depreciated in Python3
-        operation_args = inspect.getargspec(operation_func).args
+    # if PYTHON2:
+    #     # This function is depreciated in Python3
+    #     operation_args = inspect.getargspec(operation_func).args
+    # else:
+    #     operation_args = inspect.getfullargspec(operation_func).args
+
+    print("Open " + args.port + " ... ...")
+    
+    _port = serial.Serial(args.port, 115200, timeout=0.5)
+
+    if not _port.isOpen():
+        _port.open()
+
+    print('Success!')
+
+    if connect_chip(_port):
+        print("Connect Board Success ...")
+        operation_func(_port,args)
     else:
-        operation_args = inspect.getfullargspec(operation_func).args
-
-    connect_chip(args.p)
-
-    #operation_func(args)
+        print("Connect Board Fail ...")
 
 def _main():
-    try:
-        main()
-    except FatalError as e:
-        print('\nA fatal error occurred: %s' % e)
-        sys.exit(2)
+    #try:
+    main()
+    # except FatalError as e:
+    #     print('\nA fatal error occurred: %s' % e)
+    #     sys.exit(2)
 
 
 if __name__ == '__main__':

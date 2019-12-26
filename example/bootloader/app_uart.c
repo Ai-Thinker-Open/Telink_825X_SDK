@@ -151,11 +151,6 @@ enum{
 
 int flash_write(unsigned long addr, unsigned char *buf)
 {
-	if(addr&0x0fff == 0) //擦除Flash
-	{
-		flash_erase_sector(addr);
-	}
-
 	flash_write_page(addr, 256, buf);
 }
 char buff[128] = { 0 };
@@ -169,32 +164,71 @@ void app_uart_loop(void)
 		{
 			switch (rec_buff.data[0])
 			{
-				case CMD_VRSN: //???????
+				case CMD_VRSN: //读取版本号
 					sprintf(buff, BOOT_VERSION"\r\n");
 					break;
 
-				case CMD_WRTE: //?Flash
+				case CMD_WRTE: //写Flash
 					addr = rec_buff.data[3];
 					addr <<= 8;  addr += rec_buff.data[4];
 					addr <<= 8;  addr += rec_buff.data[5];
 					addr <<= 8;  addr += rec_buff.data[6];
 
-					flash_write(addr, rec_buff.data + 8);
-
-					sprintf(buff, "OK\r\n");
+					if((addr >= 0x4000) && (addr < 0x80000))
+					{
+						sprintf(buff, "OK %X\r\n",addr);
+						flash_write(addr, rec_buff.data + 8);
+					}
+					else
+					{
+						sprintf(buff, "FAIL\r\n");
+					}
 					break;
 
-				case CMD_READ: //?Flash
-					sprintf(buff, "Read is 00 01\r\n", rec_buff.dma_len );
+				case CMD_READ: //读Flash
+					addr = rec_buff.data[3];
+					addr <<= 8;  addr += rec_buff.data[4];
+					addr <<= 8;  addr += rec_buff.data[5];
+					addr <<= 8;  addr += rec_buff.data[6];
+
+					rec_buff.dma_len = rec_buff.data[7];
+
+					flash_read_page(addr, rec_buff.dma_len, rec_buff.data);
+
+					uart_dma_send((unsigned char*)&rec_buff);
+					WaitMs(10);
+					rec_buff.dma_len = 0;
+
+					sprintf(buff, "OK\r\n", rec_buff.dma_len );
 					break;
 
-				case CMD_ERAS: //??Flash
+				case CMD_ERAS: //擦除Flash
+
+					addr = rec_buff.data[3];
+					addr <<= 8;  addr += rec_buff.data[4];
+					addr <<= 8;  addr += rec_buff.data[5];
+					addr <<= 8;  addr += rec_buff.data[6];
+					
+					if(((addr&0xFFF) == 0) && addr >= 0x4000)//擦除Flash
+					{
+						for(int a = 0; a < rec_buff.data[7]; a++)
+						{
+							flash_erase_sector(addr);
+							addr += 0x1000;
+						}
+						sprintf(buff, "OK\r\n", rec_buff.dma_len );
+					}
+					else
+					{
+						sprintf(buff, "Fail\r\n", rec_buff.dma_len );
+					}
+					break;
 
 				default:
 					break;
 			}
 			uart_print(buff);
-			WaitMs(30);
+			//WaitMs(0);
 		}
 		else
 		{
