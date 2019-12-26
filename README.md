@@ -60,10 +60,25 @@ linux版本获取编译工具链
     Finished building: sizedummy
 
 ### 烧录程序到芯片
-烧录时需要使用泰凌微提供的烧录工具，正确连接目标板，使用如下指令烧录
+
+安信可自主开发了串口烧录工具，无需官方烧录器即可使用，前提是要先将安信可bootloader烧录到模块中。
+
+串口烧录接线方式如下：
+
+|串口|模块|
+|----|---|
+|VCC|3V3|
+|GND|GND|
+|TX|RX|
+RX|TX|
+|RTS|RST|
+|DTR|PC5|
+
+注意：PC5为boot选择引脚，为低电平进入下载模式，为高电平进入运行模式
+
+烧录指令：
 
     make flash
 其他指令：
 
-    make erase  //擦除芯片flash
     make monitor //打开串口监控

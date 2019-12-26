@@ -88,6 +88,7 @@ def burn(_port, args):
     fo = open(args.filename, "rb")
     firmware_addr = 0
     firmware_size = os.path.getsize(args.filename)
+
     while True:
         data = fo.read(256)
 
@@ -101,7 +102,7 @@ def burn(_port, args):
         telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr,cmd) + data)
         firmware_addr += len(data)
 
-        time.sleep(0.05)
+        time.sleep(0.03)
 
         result = telink_read(_port)
 
@@ -110,9 +111,10 @@ def burn(_port, args):
             break
 
         percent = (firmware_addr *100 / firmware_size)
-        sys.stdout.write("\r" + str(percent) + "%")
+        sys.stdout.write("\r" + str(percent) + "% [{0}{1}]".format(">"*(percent/10),"="*(10-percent/10)))
         sys.stdout.flush()
 
+    print ""
     fo.close()
     _port.close()
     
