@@ -72,7 +72,15 @@ void app_uart_init(AT_BAUD baud)
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
 	uart_recbuff_init( (unsigned short *)my_fifo_wptr(&uart_rx_fifo), UART_DATA_LEN);
 
+#if (_MODULE_TYPE_ == TB_01) //TB01模块
 	uart_gpio_set(UART_TX_PB1, UART_RX_PB0);// uart tx/rx pin set
+	#pragma message("_MODULE_TYPE_ == TB_01")
+#elif (_MODULE_TYPE_ == TB_02) //TB02模块
+	uart_gpio_set(UART_TX_PB1, UART_RX_PA0);// uart tx/rx pin set
+	#pragma message("_MODULE_TYPE_ == TB_02")
+#else
+	#error "please set module type"
+#endif
 
 	uart_reset();  //will reset uart digital registers from 0x90 ~ 0x9f, so uart setting must set after this reset
 
@@ -116,7 +124,7 @@ void my_gpio_init(void)
 	gpio_set_input_en(GPIO_PC5, 1); //disable input
 }
 
-void at_print(char * str)
+void at_print(unsigned char * str)
 {
 	while(*str)
 	{
@@ -208,11 +216,13 @@ void app_uart_irq_proc(void)
 }
 
 u8 * data = NULL;
+uart_data_t * p = NULL;
+
 void app_uart_loop()
 {
 	if(data = my_fifo_get(&uart_rx_fifo)) //从fifo中获取数据
 	{
-		uart_data_t * p = data;
+		p = data;
 
 		if((device_in_connection_state == 0) || ((gpio_read(GPIO_PC5) == 0))) //蓝牙未连接，或者PC5为低电平，响应AT指令
 		{

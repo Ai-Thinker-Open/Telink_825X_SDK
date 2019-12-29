@@ -124,23 +124,35 @@ __reset:
 @                                UART BOOTLOADER IF PC5 IS LOW , ENTER UART BOOT
 @********************************************************************************************************
 UART_BOOT:
-	@ bootloader or app by PA1
-	tloadr     	r1, DEBUG_GPIO  	@0x800580
-	tmov		r0, #0x02     
-	tstorerb	r0, [r1, #6]		@0x800586
-   
-	tstorerb	r0, [r1, #1]		@in enable
-	tstorerb	r0, [r1, #2]		@out disable
+	@ bootloader or app by PC5
+	tloadr     	r1, DEBUG_GPIO + 4   @0x8000b8 
+	tmov		r0, #0xc0     
+	tstorerb	r0, [r1, #0]
 
-	tloadrb     r2, [r1, #0]        @PC0x800580
+	tmov		r0, #0x20    		@00100000b
+	tstorerb	r0, [r1, #1]    	@0x8000b9
 
-	tand        r2, r0
-	tcmp        r2, r0
+	tmov		r0, #96 @32+64      
+	tstorerb	r0, [r1, #2]    	@0x8000ba
+
+	tmov		r2,#0
+	tmov        r3,#0xff
+BOOT_TNOP:
+	tadd        r2,#1
+	tcmp        r2,r3
+	tjle        BOOT_TNOP
+
+	tmov		r0, #0
+	tstorerb	r0, [r1, #2]    	@0x8000ba
+
+	tloadr     	r1, DEBUG_GPIO + 8   @0x8000590
+	tloadrb     r0, [r1, #0]         @PC
+
+	tmov		r2, #0x20 @PC5
+	tand        r0, r2
+	tcmp        r0, r2
 
 	tjne		UART_BOOT_END	@if PC5 is LOW, jump to bootload
-
-	tmov		r0, #0x0    
-	tstorerb	r0, [r1, #1]		@in disable all
 
 	tloadr	r1, UART_BOOT_DATA			@ Source addr
 	tloadr	r2, UART_BOOT_DATA + 4		@ Direct addr
@@ -346,8 +358,9 @@ FLL_D:
     .word	(_ram_use_size_div_16_)
 
 DEBUG_GPIO:
-	.word	(0x800580)                  @  PAx oen
+	.word	(0x80058a)                  @  PBx oen
 	.word	(0x8000b8)                  @  PBx oen
+	.word	(0x800590)                  @  PBx oen
 
 
 BOOT_SEL_D:

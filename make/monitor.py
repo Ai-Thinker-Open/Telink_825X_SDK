@@ -341,8 +341,8 @@ class Monitor(object):
 
         self.translate_eol = {
             "CRLF": lambda c: c.replace("\n", "\r\n"),
-            "CR": lambda c: c.replace("\n", "\r"),
-            "LF": lambda c: c.replace("\r", "\n"),
+            "CR": lambda c: c.replace("\n", "\r\n"),
+            "LF": lambda c: c.replace("\r", "\r\n"),
         }[eol]
 
         # internal state

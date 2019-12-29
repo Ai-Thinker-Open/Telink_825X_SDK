@@ -42,13 +42,20 @@ uart_data_t trans_buff = {0, {0,} };
 
 void app_uart_init(void)
 {
-	WaitMs(2000);  //leave enough time for SWS_reset when power on
+	WaitMs(100);  //leave enough time for SWS_reset when power on
 
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
 	uart_recbuff_init( (unsigned char *)&rec_buff, sizeof(rec_buff));
 
+#if (_MODULE_TYPE_ == TB_01) //TB01模块
 	uart_gpio_set(UART_TX_PB1, UART_RX_PB0);// uart tx/rx pin set
-
+	#pragma message("_MODULE_TYPE_ == TB_01")
+#elif (_MODULE_TYPE_ == TB_02) //TB02模块
+	uart_gpio_set(UART_TX_PB1, UART_RX_PA0);// uart tx/rx pin set
+	#pragma message("_MODULE_TYPE_ == TB_02")
+#else
+	#error "please set module type"
+#endif
 	uart_reset();  //will reset uart digital registers from 0x90 ~ 0x9f, so uart setting must set after this reset
 
 	//baud rate: 115200
@@ -56,7 +63,7 @@ void app_uart_init(void)
 //		uart_init(118, 13, PARITY_NONE, STOP_BIT_ONE);
 		uart_init(9, 13, PARITY_NONE, STOP_BIT_ONE);
 	#elif (CLOCK_SYS_CLOCK_HZ == 24000000)
-		uart_init(12, 15, PARITY_NONE, STOP_BIT_ONE);
+		uart_init(2, 15, PARITY_NONE, STOP_BIT_ONE); //baudrate = 500000
 	#endif
 
 	uart_dma_enable(1, 1); 	//uart data in hardware buffer moved by dma, so we need enable them first
@@ -152,6 +159,7 @@ enum{
 int flash_write(unsigned long addr, unsigned char *buf)
 {
 	flash_write_page(addr, 256, buf);
+	return 0;
 }
 char buff[128] = { 0 };
 unsigned long addr;

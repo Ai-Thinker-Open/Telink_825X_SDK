@@ -15,7 +15,7 @@
 #########################################################################################
 
 # Select Chip  
-TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258
+TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258 -D_MODULE_TYPE_=TB_02
 
 # Select link lib
 LIBS :=  -llt_8258

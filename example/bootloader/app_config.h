@@ -41,6 +41,10 @@ enum{
 	CLOCK_SYS_CLOCK_1US = (CLOCK_SYS_CLOCK_1S / 1000000),
 };
 
+
+#define TB_01 0
+#define TB_02 1
+
 /////////////////////////////////////// PRINT DEBUG INFO ///////////////////////////////////////
 #if (UART_PRINT_DEBUG_ENABLE)
 	#define PRINT_BAUD_RATE             					1000000

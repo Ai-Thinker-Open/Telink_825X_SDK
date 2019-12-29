@@ -66,7 +66,10 @@ void app_uart_init(void)
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
 	uart_recbuff_init( (unsigned char *)&rec_buff, sizeof(rec_buff));
 
-	uart_gpio_set(UART_TX_PB1, UART_RX_PB0);// uart tx/rx pin set
+	// uart tx/rx pin set
+	// TB01 : UART_TX_PB1  UART_RX_PB0
+	// TB02 : UART_RX_PB0  UART_RX_PA0
+	uart_gpio_set(UART_TX_PB1, UART_RX_PB0);
 
 	uart_reset();  //will reset uart digital registers from 0x90 ~ 0x9f, so uart setting must set after this reset
 

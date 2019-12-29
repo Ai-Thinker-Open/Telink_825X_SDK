@@ -42,6 +42,11 @@ __version__ = "0.1 dev"
 
 PYTHON2 = sys.version_info[0] < 3  # True if on pre-Python 3
 
+CMD_GET_VERSION = 0x00
+CMD_WRITE_FLASH = 0x01
+CMD_READ_FLASH  = 0x02
+CMD_ERASE_FLASH = 0x02
+
 def telink_read(_port):
     data = ''
     while _port.inWaiting() > 0:
@@ -56,38 +61,42 @@ def connect_chip(_port):
     _port.setRTS(True)
     _port.setDTR(True)
 
-    time.sleep(0.3)
+    time.sleep(0.1)
 
     _port.setRTS(False)
-    time.sleep(2.3)
+    time.sleep(0.15)
     _port.setDTR(False)
 
     data = telink_read(_port)
 
-    if string.find(data,'boot loader ready') != -1:
+    if data.find('boot loader ready') != -1:
         return True
     return False
 
 def burn(_port, args):
-    print "Burn firmware: " + args.filename
 
-    cmd = 0x03
+    cmd = CMD_ERASE_FLASH
     cmd_len = 5
     flash_addr = 0x4000
     telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr, 48))
 
-    print "Erase Flash at 0x4000 len 192 KB ... ..."
+    print("Erase Flash at 0x4000 len 192 KB ... ... ",end="")
+    sys.stdout.flush()
 
     time.sleep(2) #wait erase complect
     result = telink_read(_port)
 
-    if string.find(result,'OK') == -1:
-        print "Erase Flash Fail!"
+    if result.find('OK') == -1:
+        print("\033[3;31mFail!\033[0m")
+        return
+    
+    print("\033[3;32mOK!\033[0m\r\nBurn Firmware :"  + args.filename)
 
     cmd = 0x1
     fo = open(args.filename, "rb")
     firmware_addr = 0
     firmware_size = os.path.getsize(args.filename)
+    bar_len = 50
 
     while True:
         data = fo.read(256)
@@ -102,22 +111,62 @@ def burn(_port, args):
         telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr,cmd) + data)
         firmware_addr += len(data)
 
-        time.sleep(0.03)
+        time.sleep(0.01)
 
         result = telink_read(_port)
 
-        if string.find(result,'OK') == -1:
-            print "Burn firmware Fail!"
+        if result.find('OK') == -1:
+            print("\033[3;31mBurn firmware Fail!\033[0m")
             break
 
-        percent = (firmware_addr *100 / firmware_size)
-        sys.stdout.write("\r" + str(percent) + "% [{0}{1}]".format(">"*(percent/10),"="*(10-percent/10)))
+        percent = (int)(firmware_addr *100 / firmware_size)
+        sys.stdout.write("\r" + str(percent) + "% [\033[3;32m{0}\033[0m{1}]".format(">"*(int)((percent/100)*bar_len),"="*(bar_len-(int)((percent/100)*bar_len))))
         sys.stdout.flush()
 
-    print ""
+    print("")
     fo.close()
     _port.close()
-    
+
+def burn_triad(_port, args):
+
+    data = struct.pack('<I', int(args.productID)) + bytearray.fromhex(args.MAC) + bytearray.fromhex(args.Secret)
+    if(len(data) != 26):
+        print("\033[3;31mTriad Error!\033[0m")
+        return
+
+    cmd = CMD_ERASE_FLASH
+    cmd_len = 5
+    flash_addr = 0x78000
+    telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr, 1))
+
+    print("Erase Flash at 0x78000 len 4 KB ... ... ",end="")
+    sys.stdout.flush()
+
+    time.sleep(1) #wait erase complect
+    result = telink_read(_port)
+
+    if result.find('OK') == -1:
+        print("\033[3;31mFail!\033[0m")
+        return
+    print("\033[3;32mOK!\033[0m")
+
+    cmd = CMD_WRITE_FLASH
+    flash_addr = 0x78000
+
+    cmd_len = len(data) + 5
+
+    print("Burn Triad:" + str(bytearray(data)))
+
+    telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr,cmd) + data)
+
+    time.sleep(0.2) #wait erase complect
+    result = telink_read(_port)
+
+    if result.find('OK') == -1:
+        print("\033[3;31mFail!\033[0m")
+        return
+    print("\033[3;32mOK!\033[0m")
+
 def main(custom_commandline=None):
 
     parser = argparse.ArgumentParser(description='Telink_Tools.py v%s - Telink BLE Chip Bootloader Utility' % __version__)
@@ -129,6 +178,12 @@ def main(custom_commandline=None):
     burn = subparsers.add_parser('burn', help='Download an image to Flash')
     burn.add_argument('filename', help='Firmware image')
 
+    burn = subparsers.add_parser('burn_triad', help='Burn tmall triad')
+    burn.add_argument('productID', help='productID')
+    burn.add_argument('MAC', help='MAC')
+    burn.add_argument('Secret', help='Secret')
+
+
     write_flash = subparsers.add_parser('write_flash', help='Write data to flash')
     write_flash.add_argument('addr', help='write addr')
     write_flash.add_argument('data', help='data to write')
@@ -138,7 +193,8 @@ def main(custom_commandline=None):
     write_flash.add_argument('len',  help='len to read')
 
     erase_flash = subparsers.add_parser('erase_flash', help='erase 4K (a page)')
-    erase_flash.add_argument('addr', help='read addr')
+    erase_flash.add_argument('addr', help='erase start addr')
+    erase_flash.add_argument('len',  help='number of sector to erase')
 
     args = parser.parse_args(custom_commandline)
 
@@ -156,20 +212,20 @@ def main(custom_commandline=None):
     # else:
     #     operation_args = inspect.getfullargspec(operation_func).args
 
-    print("Open " + args.port + " ... ...")
+    print("Open " + args.port + " ... ... ", end="")
     
-    _port = serial.Serial(args.port, 115200, timeout=0.5)
+    _port = serial.Serial(args.port, 500000, timeout=0.5)
 
     if not _port.isOpen():
         _port.open()
 
-    print('Success!')
+    print('\033[3;32mSuccess!\033[0m\r\nConnect Board ... ... ', end="")
 
     if connect_chip(_port):
-        print("Connect Board Success ...")
+        print("\033[3;32mSuccess!\033[0m")
         operation_func(_port,args)
     else:
-        print("Connect Board Fail ...")
+        print("\033[3;31mFail!\033[0m")
 
 def _main():
     #try:
