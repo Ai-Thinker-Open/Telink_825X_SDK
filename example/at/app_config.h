@@ -27,7 +27,13 @@
 extern "C" {
 #endif
 
-#define AT_VERSION "V0.2"
+#define AT_VERSION "V0.3"
+
+#if defined  _MODULE_TB_01_  //TB01模块
+	#define CONTROL_GPIO GPIO_PC5
+#elif defined _MODULE_TB_02_ //TB02模块
+	#define CONTROL_GPIO GPIO_PB7
+#endif
 
 /////////////////// FEATURE SELECT /////////////////////////////////
 #define BLE_APP_PM_ENABLE					0

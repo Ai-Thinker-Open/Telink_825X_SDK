@@ -151,7 +151,7 @@ int module_onReceiveData(rf_packet_att_write_t *p)
 {
 	u8 len = p->l2capLen - 3;
 
-	if((gpio_read(GPIO_PC5) == 0)) //AT模式
+	if((gpio_read(CONTROL_GPIO) == 0)) //AT模式
 	{
 		u_sprintf(buff, "\r\n+DATA:%d,", len);
 		at_print(buff);

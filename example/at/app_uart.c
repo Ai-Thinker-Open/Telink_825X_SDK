@@ -22,6 +22,7 @@
 #include "tl_common.h"
 #include "drivers.h"
 
+
 #define UART_DATA_LEN    12+256     //data max ?    (UART_DATA_LEN+4) must 16 byte aligned
 
 typedef struct{
@@ -72,10 +73,10 @@ void app_uart_init(AT_BAUD baud)
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
 	uart_recbuff_init( (unsigned short *)my_fifo_wptr(&uart_rx_fifo), UART_DATA_LEN);
 
-#if (_MODULE_TYPE_ == TB_01) //TB01模块
+#if defined _MODULE_TB_01_  //TB01模块
 	uart_gpio_set(UART_TX_PB1, UART_RX_PB0);// uart tx/rx pin set
 	#pragma message("_MODULE_TYPE_ == TB_01")
-#elif (_MODULE_TYPE_ == TB_02) //TB02模块
+#elif defined _MODULE_TB_02_  //TB02模块
 	uart_gpio_set(UART_TX_PB1, UART_RX_PA0);// uart tx/rx pin set
 	#pragma message("_MODULE_TYPE_ == TB_02")
 #else
@@ -90,12 +91,12 @@ void app_uart_init(AT_BAUD baud)
 		case AT_BAUD_4800  : uart_init(499, 9, PARITY_NONE, STOP_BIT_ONE); break;
 		case AT_BAUD_9600  : uart_init(249, 9, PARITY_NONE, STOP_BIT_ONE); break;
 		case AT_BAUD_19200 : uart_init(124, 9, PARITY_NONE, STOP_BIT_ONE); break;
-		case AT_BAUD_38400 : uart_init(64,  9, PARITY_NONE, STOP_BIT_ONE); break;
-		case AT_BAUD_57600 : uart_init(24, 15, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_38400 : uart_init(61,  9, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_57600 : uart_init(25, 15, PARITY_NONE, STOP_BIT_ONE); break;
 		case AT_BAUD_115200: uart_init(12, 15, PARITY_NONE, STOP_BIT_ONE); break;
-		case AT_BAUD_230400: uart_init(6,  15, PARITY_NONE, STOP_BIT_ONE); break;
-		case AT_BAUD_460800: uart_init(6,   7, PARITY_NONE, STOP_BIT_ONE); break;
-		case AT_BAUD_921600: uart_init(6,   3, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_230400: uart_init(7,  12, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_460800: uart_init(3,  12, PARITY_NONE, STOP_BIT_ONE); break;
+		case AT_BAUD_921600: uart_init(1,  12, PARITY_NONE, STOP_BIT_ONE); break;
 
 		default : break;
 	};
@@ -115,13 +116,14 @@ void app_uart_init(AT_BAUD baud)
 void my_gpio_init(void)
 {
 	
-	gpio_set_func(GPIO_PC5, AS_GPIO);
+	gpio_set_func(CONTROL_GPIO, AS_GPIO);
 
-	gpio_setup_up_down_resistor(GPIO_PC5, PM_PIN_PULLUP_10K);
+	gpio_setup_up_down_resistor(CONTROL_GPIO, PM_PIN_PULLUP_10K);
 
-	gpio_set_output_en(GPIO_PC5, 0);//enable output
+	gpio_set_output_en(CONTROL_GPIO, 0);//enable output
 
-	gpio_set_input_en(GPIO_PC5, 1); //disable input
+	gpio_set_input_en(CONTROL_GPIO, 1); //disable input
+
 }
 
 void at_print(unsigned char * str)
@@ -224,7 +226,7 @@ void app_uart_loop()
 	{
 		p = data;
 
-		if((device_in_connection_state == 0) || ((gpio_read(GPIO_PC5) == 0))) //蓝牙未连接，或者PC5为低电平，响应AT指令
+		if((device_in_connection_state == 0) || ((gpio_read(CONTROL_GPIO) == 0))) //蓝牙未连接，或者PC5为低电平，响应AT指令
 		{
 			if(ATE)
 			{
