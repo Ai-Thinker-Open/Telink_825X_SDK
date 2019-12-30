@@ -63,7 +63,7 @@ void app_uart_init(void)
 //		uart_init(118, 13, PARITY_NONE, STOP_BIT_ONE);
 		uart_init(9, 13, PARITY_NONE, STOP_BIT_ONE);
 	#elif (CLOCK_SYS_CLOCK_HZ == 24000000)
-		uart_init(2, 15, PARITY_NONE, STOP_BIT_ONE); //baudrate = 500000
+		uart_init(1, 12, PARITY_NONE, STOP_BIT_ONE); //baudrate = 500000
 	#endif
 
 	uart_dma_enable(1, 1); 	//uart data in hardware buffer moved by dma, so we need enable them first
@@ -184,7 +184,7 @@ void app_uart_loop(void)
 
 					if((addr >= 0x4000) && (addr < 0x80000))
 					{
-						sprintf(buff, "OK %X\r\n",addr);
+						sprintf(buff, "OK_01 %X\r\n",addr);
 						flash_write(addr, rec_buff.data + 8);
 					}
 					else
@@ -207,7 +207,7 @@ void app_uart_loop(void)
 					WaitMs(10);
 					rec_buff.dma_len = 0;
 
-					sprintf(buff, "OK\r\n", rec_buff.dma_len );
+					sprintf(buff, "OK_02\r\n", rec_buff.dma_len );
 					break;
 
 				case CMD_ERAS: //擦除Flash
@@ -224,7 +224,7 @@ void app_uart_loop(void)
 							flash_erase_sector(addr);
 							addr += 0x1000;
 						}
-						sprintf(buff, "OK\r\n", rec_buff.dma_len );
+						sprintf(buff, "OK_03\r\n", rec_buff.dma_len );
 					}
 					else
 					{

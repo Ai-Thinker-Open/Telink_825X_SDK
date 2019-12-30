@@ -124,10 +124,10 @@ flash:
 	python3 $(TEL_PATH)/make/Telink_Tools.py -p /dev/ttyUSB0 burn $(BIN_FILE) 
 
 erase:
-	tcdb wf 0 -s 64k -e
+	python3 $(TEL_PATH)/make/Telink_Tools.py -p /dev/ttyUSB0 erase_flash 0x4000 32
 
 monitor:
-	$(TEL_PATH)/make/monitor.py --port /dev/ttyUSB0 --baud 115200 $(ELF_FILE)
+	python3 $(TEL_PATH)/make/monitor.py --port /dev/ttyUSB0 --baud 115200 $(ELF_FILE)
 
 secondary-outputs: $(BIN_FILE) $(LST_FILE) $(SIZEDUMMY)
 
