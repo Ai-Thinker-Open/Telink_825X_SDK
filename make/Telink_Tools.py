@@ -92,11 +92,15 @@ def erase_flash(_port, args):
     print("Erase Flash at " + args.addr + " " + args.len + " Sector ... ... ",end="")
     sys.stdout.flush()
 
-    time.sleep(2) #wait erase complect
-    result = ''
-    result = telink_read(_port)
+    time.sleep(1) #wait erase complect
+    wait_c = 0
+    while True:
+        result = telink_read(_port)
+        if(len(result) > 2): break
+        time.sleep(0.5)
+        wait_c += 1
+        if(wait_c > 8): break
 
-    print(result)
     if result.find(RES_ERASE_FLASH) == -1:
         print("\033[3;31mFail!\033[0m")
         return
@@ -114,8 +118,14 @@ def burn(_port, args):
     print("Erase Flash at 0x4000 len 192 KB ... ... ",end="")
     sys.stdout.flush()
 
-    time.sleep(2) #wait erase complect
-    result = telink_read(_port)
+    time.sleep(1) #wait erase complect
+    wait_c = 0
+    while True:
+        result = telink_read(_port)
+        if(len(result) > 2): break
+        time.sleep(0.5)
+        wait_c += 1
+        if(wait_c > 8): break
 
     if result.find(RES_ERASE_FLASH) == -1:
         print("\033[3;31mFail!\033[0m")
