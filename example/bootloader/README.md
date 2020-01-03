@@ -24,12 +24,12 @@ bootloader存放在Flash的前16KBytes。上电时这部分代码会检测相关
 
 加上BootLoader后的Flash分布;
 
-|地址|0x0-0x4000|0x4000 - 0x30000|0x30000 - 0x34000|
+|地址|0x0-0x4000|0x4000 - 0x2C000|0x2C000 - 0x30000|
 |----|----------|--------------|-------------|
-|大小|16KBytes  |最大176KBytes  |16KBytes|
+|大小|16KBytes  |最大160KBytes  |16KBytes|
 |内容|BootLoader|非 Ram Code   |Ram Code|
 
-由上表可知，用户编译的固件在Flash中被拆分成了两部分，即将其前16KBytes的内容(Ram Code)放到了0x30000的位置，非 Ram Code 存放地址不变。
+由上表可知，用户编译的固件在Flash中被拆分成了两部分，即将其前16KBytes的内容(Ram Code)放到了0x2C000的位置，非 Ram Code 存放地址不变。
 
 ## 注意
 

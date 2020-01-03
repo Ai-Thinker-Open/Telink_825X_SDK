@@ -179,7 +179,7 @@ UART_BOOT_DATA:
 	.word	0xA0
 	.word	0x843FE0
 	.word	0x844000
-	.word	0x030000
+	.word	0x02C000
 	.word	0x840000
 	.word	0x843FE0
 

@@ -38,7 +38,7 @@ def main(custom_commandline=None):
 
     subparsers = parser.add_subparsers(dest='operation', help='Run tl_fireware_tools.py -h for additional help')
     
-    burn = subparsers.add_parser('add_crc', help='Download an image to Flash')
+    burn = subparsers.add_parser('add_crc', help='Add CRC32 check to the file tail')
     burn.add_argument('filename', help='Firmware image')
 
 

@@ -113,9 +113,9 @@ def burn(_port, args):
     cmd_len = 5
     flash_addr = 0x4000
 
-    telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr, 48))
+    telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr, 44))
 
-    print("Erase Flash at 0x4000 len 192 KB ... ... ",end="")
+    print("Erase Flash at 0x4000 len 176 KB ... ... ",end="")
     sys.stdout.flush()
 
     time.sleep(1) #wait erase complect
@@ -147,7 +147,7 @@ def burn(_port, args):
         cmd_len = len(data) + 5
         flash_addr = firmware_addr
 
-        if(flash_addr < 0x4000): flash_addr += 0x30000
+        if(flash_addr < 0x4000): flash_addr += 0x2C000
 
         telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr,cmd) + data)
         firmware_addr += len(data)
