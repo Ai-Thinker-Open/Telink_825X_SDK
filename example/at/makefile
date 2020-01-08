@@ -30,7 +30,8 @@ TEL_PATH := ../..
 # Set Project Name
 PROJECT_NAME := at
 
-#BOOT_MODE := need_bootloader
+# 设置下载固件的串口号
+DOWNLOAD_PORT := /dev/ttyUSB0
 
 #########################################################################################
 # The following content need not be modified by the user!!!!!							#
