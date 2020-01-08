@@ -26,28 +26,40 @@ extern void uart_print(char * str);
 extern void app_uart_init(void);
 extern void app_uart_loop(void);
 
+#define BOOT_PIN GPIO_PA1
+
+void boot_jump()
+{
+	asm("tjl _uart_boot_start_");//跳转到汇编，去拷贝应用程序
+}
+
 void system_init()
 {
+ 	cpu_wakeup_init();
+	
+	gpio_init(0);
+
+	gpio_set_func(BOOT_PIN, AS_GPIO);
+
+	gpio_setup_up_down_resistor(BOOT_PIN, PM_PIN_PULLUP_10K);
+
+	gpio_set_output_en(BOOT_PIN, 0);
+
+	gpio_set_input_en(BOOT_PIN, 1);
+
+	if(gpio_read(BOOT_PIN) != 0)
+	{
+		gpio_setup_up_down_resistor(BOOT_PIN, PM_PIN_UP_DOWN_FLOAT);
+		boot_jump();
+	}
+
 	blc_pm_select_internal_32k_crystal();
-
-	cpu_wakeup_init();
-
-	int deepRetWakeUp = pm_is_MCU_deepRetentionWakeup();  //MCU deep retention wakeUp
-
-	rf_drv_init(RF_MODE_BLE_1M);
-
-	gpio_init(!deepRetWakeUp);
 
 #if (CLOCK_SYS_CLOCK_HZ == 16000000)
 	clock_init(SYS_CLK_16M_Crystal);
 #elif (CLOCK_SYS_CLOCK_HZ == 24000000)
 	clock_init(SYS_CLK_24M_Crystal);
 #endif
-
-	if(!deepRetWakeUp)
-	{
-		random_generator_init();
-	}
 }
 
 void main_loop (void)
@@ -55,6 +67,7 @@ void main_loop (void)
 	app_uart_loop();
 }
 
+void (*jump)(void)  = 0xA0; 
 
 int main (void) 
 {

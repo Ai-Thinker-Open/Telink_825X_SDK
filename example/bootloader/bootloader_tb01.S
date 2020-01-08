@@ -129,7 +129,7 @@ UART_BOOT:
 	tmov		r0, #0xc0     
 	tstorerb	r0, [r1, #0]
 
-	tmov		r0, #0x20    		@00100000b
+	tmov		r0, #0x10    		@00100000b
 	tstorerb	r0, [r1, #1]    	@0x8000b9
 
 	tmov		r0, #96 @32+64      

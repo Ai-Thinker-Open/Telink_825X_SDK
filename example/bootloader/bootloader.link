@@ -57,6 +57,7 @@ SECTIONS
 	PROVIDE(_ramcode_size_div_256_ = (. + 255) / 256);
 	PROVIDE(_ramcode_size_div_16_align_256_ = ( (. + 255) / 256) * 16);
 	PROVIDE(_ramcode_size_align_256_ = ( _ramcode_size_div_16_align_256_)* 16);
+    PROVIDE(_uart_boot_start_ = 0x60);
 	PROVIDE(_boot_copy_start_ = 0x3FE0);
 
     . = (((. + 3) / 4)*4);

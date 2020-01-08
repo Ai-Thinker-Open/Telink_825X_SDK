@@ -123,25 +123,11 @@ __reset:
 @********************************************************************************************************
 @                                UART BOOTLOADER IF PC5 IS LOW , ENTER UART BOOT
 @********************************************************************************************************
-UART_BOOT:
-	@ bootloader or app by PA1
-	tloadr     	r1, DEBUG_GPIO  	@0x800580
-	tmov		r0, #0x02     
-	tstorerb	r0, [r1, #6]		@0x800586
-   
-	tstorerb	r0, [r1, #1]		@in enable
-	tstorerb	r0, [r1, #2]		@out disable
+	
+	tj UART_BOOT_END
 
-	tloadrb     r2, [r1, #0]        @PC0x800580
-
-	tand        r2, r0
-	tcmp        r2, r0
-
-	tjne		UART_BOOT_END	@if PC5 is LOW, jump to bootload
-
-	tmov		r0, #0x0    
-	tstorerb	r0, [r1, #1]		@in disable all
-
+UART_BOOT_START:
+.org 0x60
 	tloadr	r1, UART_BOOT_DATA			@ Source addr
 	tloadr	r2, UART_BOOT_DATA + 4		@ Direct addr
 	tloadr	r3, UART_BOOT_DATA + 8		@ Direct addr + Len
@@ -154,7 +140,6 @@ BOOT_COPY:
 	tadd    r2, #4
 	tj		BOOT_COPY
 BOOT_COPY_END:
-	
 
 	tloadr	r1, UART_BOOT_DATA + 12		@ Source addr
 	tloadr	r2, UART_BOOT_DATA + 16		@ Direct addr
@@ -162,7 +147,7 @@ BOOT_COPY_END:
 	
 	tjl _boot_copy_start_
 
-	.org 0xA0
+	.org 0x80
 USER_COPY:
 	tcmp	r2, r3
 	tjge	USER_COPY_END
@@ -176,7 +161,7 @@ USER_COPY_END:
 
 	.align 4
 UART_BOOT_DATA:
-	.word	0xA0
+	.word	0x80
 	.word	0x843FE0
 	.word	0x844000
 	.word	0x02C000
@@ -346,8 +331,8 @@ FLL_D:
     .word	(_ram_use_size_div_16_)
 
 DEBUG_GPIO:
-	.word	(0x800580)                  @  PAx oen
-	.word	(0x8000b8)                  @  PBx oen
+	.word	(0x00800580)                  @  PAx oen
+	.word	(0x008000b8)                  @  ANA REG
 
 
 BOOT_SEL_D:
