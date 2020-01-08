@@ -54,14 +54,6 @@ INCLUDE_PATHS := -I$(TEL_PATH)/components -I$(PROJECT_PATH)
 
 GCC_FLAGS += $(TEL_CHIP)
 
-#include SDK makefile
-#-include $(TEL_PATH)/make/boot_8258.mk
--include $(TEL_PATH)/make/application.mk
-#-include $(TEL_PATH)/make/boot.mk
--include $(TEL_PATH)/make/common.mk
--include $(TEL_PATH)/make/drivers_8258.mk
--include $(TEL_PATH)/make/vendor_common.mk
-
 #include Project makefile
 -include $(PROJECT_PATH)/project.mk
 
@@ -113,18 +105,8 @@ pre-build:
 #-"D:\tel\ble_sdk_release/getver.sh"
 	-@echo ' '
 
-flash:
-	tcdb rst
-	tcdb -i $(BIN_FILE) -b
-	tcdb wc 602 84
-
-erase:
-	tcdb wf 0 -s 64k -e
-
-monitor:
-	$(TEL_PATH)/make/monitor.py --port /dev/ttyUSB0 --baud 115200 $(ELF_FILE)
 
 secondary-outputs: $(BIN_FILE) $(LST_FILE) $(SIZEDUMMY)
 
-.PHONY: all clean dependents flash erase monitor pre-build 
+.PHONY: all clean dependents pre-build 
 .SECONDARY: main-build 
