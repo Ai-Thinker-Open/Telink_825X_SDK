@@ -32,14 +32,50 @@ def add_crc(args):
 
     fp.close()
 
+def  combine(args) :
+    ub = open(args.uart_boot, "rb")
+    sf = open(args.src_firmware, "rb")
+    df = open(args.dst_firmware, "w+b")
+
+    df.write(ub.read())
+    ub.close()
+
+    df.seek(0x4000,0)
+    sf.seek(0x4000,0)
+
+    df.write(sf.read())
+
+    df.seek(0x2c000,0)
+    sf.seek(0x00000,0)
+
+    df.write(sf.read(0x3FFC))
+    sf.close()
+
+    df.seek(0, 0)
+    file_content = df.read()
+    crc32_result = zlib.crc32(file_content)
+
+    df.seek(0, 2)
+    df.write(struct.pack('>I', crc32_result))
+
+    print("Firmware CRC32: " + hex(crc32_result))
+
+    df.close()  
+
+
 def main(custom_commandline=None):
 
     parser = argparse.ArgumentParser(description='tl_fireware_tools.py v%s - Telink BLE Firmware Utility' % __version__)
 
     subparsers = parser.add_subparsers(dest='operation', help='Run tl_fireware_tools.py -h for additional help')
     
-    burn = subparsers.add_parser('add_crc', help='Add CRC32 check to the file tail')
-    burn.add_argument('filename', help='Firmware image')
+    add_crc = subparsers.add_parser('add_crc', help='Add CRC32 check to the file tail')
+    add_crc.add_argument('filename', help='Firmware image')
+
+    combine = subparsers.add_parser('combine', help='Combine Firmware with uart_boot')
+    combine.add_argument('uart_boot', help='uart_boot firmware image')
+    combine.add_argument('src_firmware', help='source firmware image')
+    combine.add_argument('dst_firmware', help='target firmware image')
 
 
     args = parser.parse_args(custom_commandline)

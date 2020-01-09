@@ -76,6 +76,7 @@ endif
 LST_FILE := $(OUT_PATH)/$(PROJECT_NAME).lst
 BIN_FILE := $(OUT_PATH)/$(PROJECT_NAME).bin
 ELF_FILE := $(OUT_PATH)/$(PROJECT_NAME).elf
+UART_BOOT:= $(TEL_PATH)/components/uart_boot_v0.2.bin
 
 SIZEDUMMY := sizedummy
 
@@ -130,7 +131,10 @@ erase_fw:
 monitor:
 	python3 $(TEL_PATH)/make/monitor.py --port $(DOWNLOAD_PORT) --baud 115200 $(ELF_FILE)
 
+combine_fw:
+	python3 $(TEL_PATH)/make/tl_firmware_tools.py combine $(UART_BOOT) $(BIN_FILE) $(OUT_PATH)/$(PROJECT_NAME)_with_boot.bin
+
 secondary-outputs: $(BIN_FILE) $(LST_FILE) $(SIZEDUMMY)
 
-.PHONY: all clean dependents flash erase_fw monitor pre-build 
+.PHONY: all clean dependents flash erase_fw monitor combine_fw pre-build
 .SECONDARY: main-build 
