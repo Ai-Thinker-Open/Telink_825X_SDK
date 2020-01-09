@@ -38,7 +38,7 @@ except ImportError:
           "Check the README for installation instructions." % (sys.VERSION, sys.executable))
     raise
 
-__version__ = "0.1 dev"
+__version__ = "0.2 dev"
 
 PYTHON2 = sys.version_info[0] < 3  # True if on pre-Python 3
 
@@ -51,17 +51,57 @@ RES_WRITE_FLASH = 'OK_01'
 RES_READ_FLASH  = 'OK_02'
 RES_ERASE_FLASH = 'OK_03'
 
-def telink_read(_port):
+def uart_read(_port):
     data = ''
     while _port.inWaiting() > 0:
-        data += str(_port.read_all())
-    return data
+        data += _port.read_all().decode(encoding='utf-8')
+    return str(data)
 
-def telink_write(_port, data):
+def uart_write(_port, data):
     _port.flushInput()
     _port.flushOutput()
 
     _port.write(data)
+
+def wait_result(_port, res):
+    wait_c = 0
+    result = ''
+    while True:
+        result += uart_read(_port)
+        if(len(result) > 5): 
+            break
+        time.sleep(0.005)
+        wait_c += 1
+        if(wait_c > 400): break
+
+    if result.find(res) == -1:
+        return False
+    return True
+
+def telink_flash_write(_port, addr, data):
+    cmd_len = len(data) + 5
+    if(addr < 0x4000): addr += 0x2C000
+    uart_write(_port, struct.pack('>BHIB', CMD_WRITE_FLASH, cmd_len, addr, 0) + data)
+    return wait_result(_port, RES_WRITE_FLASH)
+
+def telink_flash_read(_port, addr, len_b):
+    uart_write(_port, struct.pack('>BHIB', CMD_READ_FLASH, 5, addr,len_b))
+    time.sleep(0.01)
+
+    data = bytes()
+    while True :
+        if _port.inWaiting() > 0: data += _port.read_all()
+        if len(data) > len_b + 5: break
+        time.sleep(0.01)
+
+    result = str(data[len_b:])
+    if  result.find(RES_READ_FLASH) == -1: return False , 0
+    else : return True , data[:len_b]
+
+def telink_flash_erase(_port, addr, len_t):
+    uart_write(_port, struct.pack('>BHIB', CMD_ERASE_FLASH, 5, addr, len_t))
+    time.sleep(len_t * 0.03) #wait erase complect
+    return wait_result(_port, RES_ERASE_FLASH)
 
 def connect_chip(_port):
 
@@ -74,66 +114,61 @@ def connect_chip(_port):
     time.sleep(0.15)
     _port.setDTR(False)
 
-    data = telink_read(_port)
+    uart_write(_port, struct.pack('>BH', CMD_GET_VERSION, 0))
 
-    if data.find('boot loader ready') != -1:
+    if wait_result(_port, "V"):
         return True
     return False
 
 def erase_flash(_port, args):
 
-    cmd = CMD_ERASE_FLASH
-    cmd_len = 5
     flash_addr = int(args.addr, 0)
-    sector_len = int(args.len)
+    sector_len = int(args.len,  0)
 
-    telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr, sector_len))
-
-    print("Erase Flash at " + args.addr + " " + args.len + " Sector ... ... ",end="")
+    print("Erase Flash at " + args.addr + " " + args.len + " Sector ... ... ", end="")
     sys.stdout.flush()
 
-    time.sleep(1) #wait erase complect
-    wait_c = 0
-    while True:
-        result = telink_read(_port)
-        if(len(result) > 2): break
-        time.sleep(0.5)
-        wait_c += 1
-        if(wait_c > 8): break
-
-    if result.find(RES_ERASE_FLASH) == -1:
+    if telink_flash_erase(_port,flash_addr, sector_len):
+        print("\033[3;32mOK!\033[0m")
+    else:
         print("\033[3;31mFail!\033[0m")
+
+def read_flash(_port, args):
+    flash_addr = int(args.addr, 0)
+    bytes_len  = int(args.len,  0)
+
+    if bytes_len> 255:
+        print("\033[3;31mThe MAX read len is 255 bytes!\033[0m")
         return
-    
-    print("\033[3;32mOK!\033[0m")
+
+    print("Read Flash from " + args.addr + " " + args.len + " Bytes ... ... ", end="")
+    sys.stdout.flush()
+
+    data_c = 0
+    res , data = telink_flash_read(_port,flash_addr, bytes_len)
+    if res:
+        print("\033[3;32mOK!\033[0m")
+        for b in data:
+            data_c += 1
+            if data_c == 16: 
+                print("%02x " %b)
+                data_c = 0
+            else :print("%02x " %b, end='')
+        print('')
+    else:
+        print("\033[3;31mFail!\033[0m")
 
 def burn(_port, args):
 
-    cmd = CMD_ERASE_FLASH
-    cmd_len = 5
-    flash_addr = 0x4000
-
-    telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr, 44))
-
-    print("Erase Flash at 0x4000 len 176 KB ... ... ",end="")
+    print("Erase Flash at 0x4000 len 176 KB ... ... ", end="")
     sys.stdout.flush()
 
-    time.sleep(1) #wait erase complect
-    wait_c = 0
-    while True:
-        result = telink_read(_port)
-        if(len(result) > 2): break
-        time.sleep(0.5)
-        wait_c += 1
-        if(wait_c > 8): break
-
-    if result.find(RES_ERASE_FLASH) == -1:
+    if not telink_flash_erase(_port, 0x4000, 44):
         print("\033[3;31mFail!\033[0m")
         return
     
     print("\033[3;32mOK!\033[0m\r\nBurn Firmware :"  + args.filename)
 
-    cmd = 0x1
     fo = open(args.filename, "rb")
     firmware_addr = 0
     firmware_size = os.path.getsize(args.filename)
@@ -141,24 +176,13 @@ def burn(_port, args):
 
     while True:
         data = fo.read(256)
-
         if len(data) < 1: break
 
-        cmd_len = len(data) + 5
-        flash_addr = firmware_addr
-
-        if(flash_addr < 0x4000): flash_addr += 0x2C000
-
-        telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr,cmd) + data)
-        firmware_addr += len(data)
-
-        time.sleep(0.01)
-
-        result = telink_read(_port)
-
-        if result.find(RES_WRITE_FLASH) == -1:
+        if not telink_flash_write(_port, firmware_addr, data):
             print("\033[3;31mBurn firmware Fail!\033[0m")
             break
+
+        firmware_addr += len(data)
 
         percent = (int)(firmware_addr *100 / firmware_size)
         sys.stdout.write("\r" + str(percent) + "% [\033[3;32m{0}\033[0m{1}]".format(">"*(int)((percent/100)*bar_len),"="*(bar_len-(int)((percent/100)*bar_len))))
@@ -175,35 +199,18 @@ def burn_triad(_port, args):
         print("\033[3;31mTriad Error!\033[0m")
         return
 
-    cmd = CMD_ERASE_FLASH
-    cmd_len = 5
-    flash_addr = 0x78000
-    telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr, 1))
-
     print("Erase Flash at 0x78000 len 4 KB ... ... ",end="")
     sys.stdout.flush()
 
-    time.sleep(1) #wait erase complect
-    result = telink_read(_port)
-
-    if result.find(RES_ERASE_FLASH) == -1:
+    if not telink_flash_erase(_port, 0x78000, 1):
         print("\033[3;31mFail!\033[0m")
         return
     print("\033[3;32mOK!\033[0m")
 
-    cmd = CMD_WRITE_FLASH
-    flash_addr = 0x78000
+    print("Burn Triad to 0x78000 ... ... ",end="")
+    sys.stdout.flush()
 
-    cmd_len = len(data) + 5
-
-    print("Burn Triad:" + str(bytearray(data)))
-
-    telink_write(_port, struct.pack('>BHIB', cmd, cmd_len, flash_addr,cmd) + data)
-
-    time.sleep(0.2) #wait erase complect
-    result = telink_read(_port)
-
-    if result.find(RES_WRITE_FLASH) == -1:
+    if not telink_flash_write(_port, 0x78000, data):
         print("\033[3;31mFail!\033[0m")
         return
     print("\033[3;32mOK!\033[0m")
