@@ -42,8 +42,6 @@ uart_data_t trans_buff = {0, {0,} };
 
 void app_uart_init(void)
 {
-	WaitMs(100);  //leave enough time for SWS_reset when power on
-
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
 	uart_recbuff_init( (unsigned char *)&rec_buff, sizeof(rec_buff));
 
@@ -184,7 +182,7 @@ void app_uart_loop(void)
 
 					if((addr >= 0x4000) && (addr < 0x80000))
 					{
-						sprintf(buff, "OK_01 %X\r\n",addr);
+						sprintf(buff, "OK_01\r\n");
 						flash_write(addr, rec_buff.data + 8);
 					}
 					else

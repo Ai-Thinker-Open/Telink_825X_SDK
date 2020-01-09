@@ -101,7 +101,8 @@ enum{
 #endif  //end of DEBUG_GPIO_ENABLE
 
 
-
+/////////////open SWS digital pullup to prevent MCU err, this is must ////////////
+#define PA7_DATA_OUT			1
 
 
 #include "vendor/common/default_config.h"

@@ -61,7 +61,7 @@ volatile unsigned char uart_ndmairq_index=0;
 
 void app_uart_init(void)
 {
-	WaitMs(2000);  //leave enough time for SWS_reset when power on
+	//WaitMs(100);  //leave enough time for SWS_reset when power on
 
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
 	uart_recbuff_init( (unsigned char *)&rec_buff, sizeof(rec_buff));
