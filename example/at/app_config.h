@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-#define AT_VERSION "V0.3"
+#define AT_VERSION "V0.4"
 
 #if defined  _MODULE_TB_01_  //TB01模块
 	#define CONTROL_GPIO GPIO_PC5

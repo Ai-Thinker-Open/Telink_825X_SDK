@@ -150,6 +150,7 @@ int putchar(int c){
 		return swire_putc((char)c);
 	}
 #endif
+return 0;
 }
 
 #endif

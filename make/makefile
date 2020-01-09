@@ -53,11 +53,7 @@ INCLUDE_PATHS := -I$(TEL_PATH)/components -I$(PROJECT_PATH)
 
 GCC_FLAGS += $(TEL_CHIP)
 
-ifeq ($(BOOT_MODE), need_bootloader)
-	LS_FLAGS := $(TEL_PATH)/components/app.link
-else
-	LS_FLAGS := $(TEL_PATH)/components/boot.link
-endif
+LS_FLAGS := $(TEL_PATH)/components/boot.link
 
 
 #include SDK makefile
@@ -76,7 +72,7 @@ endif
 LST_FILE := $(OUT_PATH)/$(PROJECT_NAME).lst
 BIN_FILE := $(OUT_PATH)/$(PROJECT_NAME).bin
 ELF_FILE := $(OUT_PATH)/$(PROJECT_NAME).elf
-UART_BOOT:= $(TEL_PATH)/components/uart_boot_v0.2.bin
+UART_BOOT:= $(TEL_PATH)/components/uart_boot_TB01_v0.3.bin
 
 SIZEDUMMY := sizedummy
 
@@ -114,7 +110,7 @@ sizedummy: $(ELF_FILE)
 
 # Other Targets
 clean:
-	-$(RM) $(FLASH_IMAGE)$(ELFS)$(OBJS)$(LST)$(SIZEDUMMY) $(ELF_FILE) $(BIN_FILE) $(LST_FILE)
+	-$(RM) $(FLASH_IMAGE) $(ELFS) $(OBJS) $(LST) $(SIZEDUMMY) $(ELF_FILE) $(BIN_FILE) $(LST_FILE)
 	-@echo ' '
 
 pre-build:

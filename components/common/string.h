@@ -34,6 +34,7 @@ int		memcmp(const void *_s1, const void *_s2, unsigned int _n);
 char *	strcat(char *_s1, const char *_s2);
 char *	strchr(const char *_s, int _c);
 int		strcmp(const char *_s1, const char *_s2);
+int     strxcmp(const char* firstString, const char* secondString);
 int		strcoll(const char *_s1, const char *_s2);
 char *	strcpy(char *_s1, const char *_s2);
 unsigned int	strcspn(const char *_s1, const char *_s2);

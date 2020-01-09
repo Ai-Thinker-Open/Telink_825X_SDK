@@ -51,7 +51,6 @@ static unsigned char data_process_parse(char *pbuf,  int mode, int len)
 	char *ps = NULL;
 	unsigned char result = AT_RESULT_CODE_ERROR;
     const _at_command_t *cmd_ptr = NULL;
-	unsigned char cmdLen = 0;
 	unsigned char dataLen = 0;
 	
 	

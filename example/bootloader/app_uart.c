@@ -22,7 +22,7 @@
 #include "tl_common.h"
 #include "drivers.h"
 
-#define BOOT_VERSION "V0.2"
+#define BOOT_VERSION "V0.3"
 
 volatile unsigned char uart_rx_flag=0;
 volatile unsigned char uart_dmairq_tx_cnt=0;

@@ -21,7 +21,8 @@
  *******************************************************************************************************/
 #include "tl_common.h"
 #include "drivers.h"
-
+#include "stack/ble/ble.h"
+#include "at_cmd.h"
 
 #define UART_DATA_LEN    12+256     //data max ?    (UART_DATA_LEN+4) must 16 byte aligned
 
@@ -126,7 +127,7 @@ void my_gpio_init(void)
 
 }
 
-void at_print(unsigned char * str)
+void at_print(char * str)
 {
 	while(*str)
 	{
@@ -157,7 +158,7 @@ void at_print_hexstr(char * data, u32 len)
 		buf[i*3 +1] = hextab[(data[i]&0xf)];
 		buf[i*3 +2] = ' ';
 	}
-	at_print(buf);
+	at_print((char*)buf);
 }
 
 void at_send(char * data, u32 len)
@@ -224,7 +225,7 @@ void app_uart_loop()
 {
 	if(data = my_fifo_get(&uart_rx_fifo)) //从fifo中获取数据
 	{
-		p = data;
+		p = (uart_data_t *)data;
 
 		if((device_in_connection_state == 0) || ((gpio_read(CONTROL_GPIO) == 0))) //蓝牙未连接，或者PC5为低电平，响应AT指令
 		{
@@ -233,7 +234,7 @@ void app_uart_loop()
 				uart_dma_send((unsigned char*)p);
 			}
 
-			at_data_process(p->data, p->dma_len);
+			at_data_process((char*)(p->data), p->dma_len);
 		}
 		else //透传模式且蓝牙已连接，所有数据通过BLE发送出去
 		{

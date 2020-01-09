@@ -167,7 +167,7 @@ char *strstr(const char* src, const char *sub)
 {
     if(src ==0 || 0 == sub)
     {
-        return src;
+        return (char*)src;
     }
     
     const char *bp=src;
@@ -179,7 +179,7 @@ char *strstr(const char* src, const char *sub)
         sp=sub;
         do{
             if(!*sp)
-                return src;
+                return (char*)src;
             }while(*bp++==*sp++);
         src+=1;
     }  

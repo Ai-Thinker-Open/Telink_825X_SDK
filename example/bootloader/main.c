@@ -26,7 +26,7 @@ extern void uart_print(char * str);
 extern void app_uart_init(void);
 extern void app_uart_loop(void);
 
-#define BOOT_PIN GPIO_PA1
+#define BOOT_PIN GPIO_PA7
 
 void boot_jump()
 {
@@ -60,6 +60,7 @@ void system_init()
 #elif (CLOCK_SYS_CLOCK_HZ == 24000000)
 	clock_init(SYS_CLK_24M_Crystal);
 #endif
+	gpio_setup_up_down_resistor(BOOT_PIN, PM_PIN_UP_DOWN_FLOAT);
 }
 
 void main_loop (void)

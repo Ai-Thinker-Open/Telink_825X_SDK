@@ -28,7 +28,7 @@
 #include "vendor/common/blt_common.h"
 #include "application/keyboard/keyboard.h"
 #include "application/usbstd/usbkeycode.h"
-
+#include "tinyFlash/tinyFlash.h"
 
 #define 	ADV_IDLE_ENTER_DEEP_TIME			60  //60 s
 #define 	CONN_IDLE_ENTER_DEEP_TIME			60  //60 s
@@ -130,7 +130,7 @@ void app_switch_to_indirect_adv(u8 e, u8 *p, int n)
 	bls_ll_setAdvEnable(1);  //must: set adv enable
 }
 
-
+extern void at_print(unsigned char * str);
 
 void ble_remote_terminate(u8 e,u8 *p, int n) //*p is terminate reason
 {
@@ -159,7 +159,7 @@ void ble_remote_terminate(u8 e,u8 *p, int n) //*p is terminate reason
 
 	advertise_begin_tick = clock_time();
 
-	at_print("\r\n+BLE_DISCONNECTED\r\n");
+	at_print((unsigned char *)"\r\n+BLE_DISCONNECTED\r\n");
 }
 
 _attribute_ram_code_ void user_set_rf_power (u8 e, u8 *p, int n)
@@ -180,7 +180,7 @@ void task_connect (u8 e, u8 *p, int n)
 
 	device_in_connection_state = 1;//
 
-	at_print("\r\n+BLE_CONNECTED\r\n");
+	at_print((unsigned char *)"\r\n+BLE_CONNECTED\r\n");
 
 	interval_update_tick = clock_time() | 1; //none zero
 }
@@ -376,7 +376,7 @@ _attribute_ram_code_ void user_init_deepRetn(void)
 // main loop flow
 /////////////////////////////////////////////////////////////////////
 
-
+void app_uart_loop();
 
 void main_loop (void)
 {

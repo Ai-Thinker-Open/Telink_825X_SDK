@@ -72,7 +72,7 @@ linux版本获取编译工具链
 |TX|RX|
 RX|TX|
 |RTS|RST|
-|DTR|PA1|
+|DTR|SWS|
 
 注意：PA1为boot选择引脚，为低电平进入下载模式，为高电平进入运行模式
 
@@ -81,4 +81,5 @@ RX|TX|
     make flash
 其他指令：
 
+    make erase_fw//擦除固件
     make monitor //打开串口监控

@@ -85,6 +85,7 @@ int device_led_setup(led_cfg_t led_cfg)
 		return 1;
 	}
 #endif
+	return 0;
 }
 
 

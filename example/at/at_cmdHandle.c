@@ -10,9 +10,8 @@
 #define STORAGE_BAUD 2
 #define STORAGE_ATE  3
 
-static unsigned char buf[64] = { 0 };
+static char buf[64] = { 0 };
 
-extern void at_print(char * str);
 extern u8 baud_buf[];
 extern  const u8 tbl_scanRsp[];
 extern u8 my_scanRsp[32];
@@ -79,7 +78,7 @@ static unsigned char atCmd_Baud(char *pbuf,  int mode, int lenth)
 		if((pbuf[0] >= '0') && (pbuf[0] <= '9'))
 		{
 			pbuf[0] -= '0';
-			tinyFlash_Write(STORAGE_BAUD, pbuf, 1);
+			tinyFlash_Write(STORAGE_BAUD, (unsigned char*)pbuf, 1);
 			return 0;
 		}
 		else
@@ -87,12 +86,11 @@ static unsigned char atCmd_Baud(char *pbuf,  int mode, int lenth)
 			return 2;
 		}
 	}
+	return 1;
 }
 
 static unsigned char atCmd_Name(char *pbuf,  int mode, int lenth)
 {
-	unsigned char len = 64;
-
 	if(mode == AT_CMD_MODE_READ)
 	{
 		memset(buf, 0, 64);
@@ -108,16 +106,17 @@ static unsigned char atCmd_Name(char *pbuf,  int mode, int lenth)
 			memcpy(buf, tbl_scanRsp+2, 10);
 		}
 		
-		at_print(buf);
+		at_print((char*)buf);
 
 		return 0;
 	}
 
 	if(mode == AT_CMD_MODE_SET)
 	{
-		tinyFlash_Write(STORAGE_NAME, pbuf, lenth);
+		tinyFlash_Write(STORAGE_NAME, (unsigned char*)pbuf, lenth);
 		return 0;
 	}
+	return 1;
 }
 
 static unsigned char atCmd_Mac(char *pbuf,  int mode, int lenth)
@@ -125,8 +124,8 @@ static unsigned char atCmd_Mac(char *pbuf,  int mode, int lenth)
 	if(mode == AT_CMD_MODE_READ)
 	{
 		at_print("\r\n+MAC:");
-		u_sprintf(buf, "%X%X%X%X%X%X", mac_public[5], mac_public[4], mac_public[3], mac_public[2], mac_public[1], mac_public[0] );
-		at_print(buf);
+		u_sprintf((char*)buf, "%X%X%X%X%X%X", mac_public[5], mac_public[4], mac_public[3], mac_public[2], mac_public[1], mac_public[0] );
+		at_print((char*)buf);
 		return 0;
 	}
 
@@ -176,10 +175,12 @@ static unsigned char atCmd_Mac(char *pbuf,  int mode, int lenth)
 		pbuf[3] = pbuf[6];
 
 		flash_erase_sector (CFG_ADR_MAC);
-		flash_write_page (CFG_ADR_MAC, 8, pbuf);
+		flash_write_page (CFG_ADR_MAC, 8, (unsigned char*)pbuf);
 		
 		return 0;
 	}
+
+	return 1;
 }
 
 /*读取某片Flash数据到全局变量，主要用于调试tinyFlash*/
@@ -265,7 +266,7 @@ static unsigned char atCmd_Send(char *pbuf,  int mode, int lenth)
 			return 2;
 		}
 
-		bls_att_pushNotifyData(SPP_SERVER_TO_CLIENT_DP_H, data, len); //release
+		bls_att_pushNotifyData(SPP_SERVER_TO_CLIENT_DP_H, (u8*)data, len); //release
 
 		return 0;
 	}

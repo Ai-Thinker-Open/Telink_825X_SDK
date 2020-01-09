@@ -22,6 +22,8 @@
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
+#include "application/print/u_printf.h"
+#include "at_cmd.h"
 
 typedef struct
 {
@@ -143,7 +145,9 @@ static const u8 my_PnCharVal[5] = {
 //// Telink spp  attribute values
 static const u8 TelinkSppData_1[19] = {
 	CHAR_PROP_READ | CHAR_PROP_WRITE_WITHOUT_RSP | CHAR_PROP_NOTIFY,
-	U16_LO(SPP_SERVER_TO_CLIENT_DP_H), U16_HI(SPP_SERVER_TO_CLIENT_DP_H), TELINK_SPP_DATA_SERVER2CLIENT
+	U16_LO(SPP_SERVER_TO_CLIENT_DP_H), 
+	U16_HI(SPP_SERVER_TO_CLIENT_DP_H), 
+	TELINK_SPP_DATA_SERVER2CLIENT
 };
 
 char buff[64] = {0};
@@ -156,13 +160,13 @@ int module_onReceiveData(rf_packet_att_write_t *p)
 		u_sprintf(buff, "\r\n+DATA:%d,", len);
 		at_print(buff);
 
-		at_send(&p->value, len);
+		at_send((char*)&p->value, len);
 
 		at_print("\r\n");
 	}
 	else
 	{
-		at_send(&p->value, len);
+		at_send((char*)&p->value, len);
 	}
 
 	return 0;

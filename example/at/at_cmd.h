@@ -47,4 +47,7 @@ typedef enum {
     AT_CMD_MODE_INVALID     /**< The input command doesn't belong to any of the four types. */
 } at_cmd_mode_t;
 
+void at_print(char * str);
+void at_send(char * data, u32 len);
+
 #endif //__AT_CMD_H__

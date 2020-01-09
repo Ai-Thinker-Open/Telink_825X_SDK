@@ -199,7 +199,7 @@ void tinyFlash_Swap() //扇区使用完了，需要清理数据，才能存储�
     unsigned long _addr_end   = tinyFlash_Used_Addr + TINY_SECTOR_SIZE; //当前使用的扇区的结束地址
 
     unsigned long _new_addr_start = tinyFlash_Swap_Addr + TINY_SECHAD_SIZE; //将要使用的扇区的起始地址
-    unsigned long _new_addr_end   = tinyFlash_Swap_Addr + TINY_SECTOR_SIZE; //将要使用的扇区的结束地址
+    //unsigned long _new_addr_end   = tinyFlash_Swap_Addr + TINY_SECTOR_SIZE; //将要使用的扇区的结束地址
         
     unsigned long tmp = 0;
 
