@@ -48,8 +48,20 @@ static unsigned char atCmd_Reset(char *pbuf,  int mode, int lenth)
 static unsigned char atCmd_Sleep(char *pbuf,  int mode, int lenth)
 {
 	at_print("\r\nOK\r\n");
+
+#if defined (_MODULE_TB_01_) //TB01模块
 	gpio_setup_up_down_resistor(GPIO_PB0, PM_PIN_PULLDOWN_100K);
 	cpu_set_gpio_wakeup (GPIO_PB0, Level_Low, 1); 
+	#pragma message("wakeup pin GPIO_PB0")
+#elif defined (_MODULE_TB_02_) //TB02模块
+	gpio_setup_up_down_resistor(GPIO_PA0, PM_PIN_PULLDOWN_100K);
+	cpu_set_gpio_wakeup (GPIO_PA0, Level_Low, 1); 
+	#pragma message("wakeup pin GPIO_PA0")
+#else
+	#error "please set module type"
+#endif
+
+	
 	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_PAD, 0);  //deepsleep
 	return 0;
 }

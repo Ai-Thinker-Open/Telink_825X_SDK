@@ -76,10 +76,10 @@ void app_uart_init(AT_BAUD baud)
 
 #if defined _MODULE_TB_01_  //TB01模块
 	uart_gpio_set(UART_TX_PB1, UART_RX_PB0);// uart tx/rx pin set
-	#pragma message("_MODULE_TYPE_ == TB_01")
+	#pragma message("uart_gpio_set(UART_TX_PB1, UART_RX_PB0)")
 #elif defined _MODULE_TB_02_  //TB02模块
 	uart_gpio_set(UART_TX_PB1, UART_RX_PA0);// uart tx/rx pin set
-	#pragma message("_MODULE_TYPE_ == TB_02")
+	#pragma message("uart_gpio_set(UART_TX_PB1, UART_RX_PA0)")
 #else
 	#error "please set module type"
 #endif

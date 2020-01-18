@@ -5,10 +5,12 @@ Telink 泰凌 TLSR825X 蓝牙芯片软件开发套件
 # 使用方法
 ---------------------------------------------------
 
-### 获取TC32编译工具链
->目前仅测试了linux系统，MAC系统未测试，以下文档只针对于linux
+### 获取TC32编译工具链(文档仅适用于Linux)
+>目前仅测试了linux系统，Mac OS及Windows系统仅提供了编译工具变，需自行设置环境变量
 
->mac版本工具链下载地址 ```https://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32-mac.zip```
+>Mac OS版本工具链下载地址 ```https://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32-mac.zip```
+
+>Windows 版本工具链下载地址 ```https://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32-win.rar```
 
 linux版本获取编译工具链
 
