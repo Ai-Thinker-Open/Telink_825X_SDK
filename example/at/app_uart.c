@@ -54,6 +54,8 @@ _attribute_data_retention_	my_fifo_t	uart_rx_fifo = {
 u8 baud_buf[1] = { 6 };
 u8 ATE = 0;
 
+char at_print_buf[256] = { 0 };
+
 typedef enum {
     AT_BAUD_2400 = 0,
 	AT_BAUD_4800,
@@ -157,6 +159,17 @@ void at_print_hexstr(char * data, u32 len)
 		buf[i*3] = hextab[(data[i] >> 4)];
 		buf[i*3 +1] = hextab[(data[i]&0xf)];
 		buf[i*3 +2] = ' ';
+	}
+	at_print((char*)buf);
+}
+
+void at_print_array(char * data, u32 len)
+{
+	unsigned char buf[128] = { 0 };
+	for(int i =0; i < len; i ++)
+	{
+		buf[i*2] = hextab[(data[i] >> 4)];
+		buf[i*2 +1] = hextab[(data[i]&0xf)];
 	}
 	at_print((char*)buf);
 }

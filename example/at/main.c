@@ -24,6 +24,7 @@
 #include "drivers.h"
 #include "stack/ble/ble.h"
 #include "vendor/common/user_config.h"
+#include "vendor/common/blt_soft_timer.h"
 #include "tinyFlash/tinyFlash.h"
 
 extern void user_init_normal();
@@ -32,6 +33,7 @@ extern void user_init_deepRetn();
 extern void main_loop (void);
 extern u8 baud_buf[];
 extern u8 ATE;
+u32 device_mode;
 
 _attribute_ram_code_ void irq_handler(void)
 {
@@ -39,7 +41,6 @@ _attribute_ram_code_ void irq_handler(void)
 
 	irq_blt_sdk_handler();
 }
-
 
 _attribute_ram_code_ int main (void)    //must run in ramcode
 {
@@ -57,6 +58,8 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 	clock_init(SYS_CLK_16M_Crystal);
 #elif (CLOCK_SYS_CLOCK_HZ == 24000000)
 	clock_init(SYS_CLK_24M_Crystal);
+#elif (CLOCK_SYS_CLOCK_HZ == 32000000)
+	clock_init(SYS_CLK_32M_Crystal);
 #endif
 
 	blc_app_loadCustomizedParameters();  //load customized freq_offset cap value
@@ -71,25 +74,63 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 
 	my_gpio_init(); //初始化GPIO
 
+	blt_soft_timer_init(); // 初始化定时器
+
 	tinyFlash_Read(3, &ATE, &len); //读取ATE
 	
-	if( deepRetWakeUp ){
-		user_init_deepRetn ();
+	len =1;
+	tinyFlash_Read(4, &device_mode, &len); //读取ATE
+
+	if( deepRetWakeUp )
+	{
+		if(device_mode == 1) //master mode
+		{
+			ble_master_init_deepRetn();
+		}
+		else
+		{
+			ble_slave_init_deepRetn();
+		}
 	}
-	else{
-		user_init_normal ();
+	else
+	{
+		if(device_mode == 1) //master mode
+		{
+			ble_master_init_normal();
+		}
+		else
+		{
+			ble_slave_init_normal();
+		}
 	}
 	//WaitMs(10);
-	at_print("    \r\nAi-Thinker Ble AT "AT_VERSION"\r\n+READY\r\n");
+	at_print("    \r\nAi-Thinker BlE AT "AT_VERSION"\r\n+READY\r\n");
 
+	
 
 	WaitMs(10);
 
-	while (1) {
+	irq_enable();
+
+	while (1) //main_loop
+	{
 #if (MODULE_WATCHDOG_ENABLE)
 		wd_clear(); //clear watch dog
 #endif
-		main_loop ();
+		blt_sdk_main_loop();
+
+		if(device_mode == 1) //master mode
+		{
+			ble_master_mainloop();
+		}
+
+		// ////////////////////////////////////// PM Process /////////////////////////////////
+		// blt_pm_proc();
+
+		app_uart_loop();
+
+		blt_soft_timer_process(MAINLOOP_ENTRY);
+	
 	}
 }
 

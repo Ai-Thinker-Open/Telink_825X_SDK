@@ -41,6 +41,7 @@ extern "C" {
 #define TEST_CONN_CURRENT_ENABLE            0 //test curr, disable keyscan concerned
 #define BLE_REMOTE_SECURITY_ENABLE      	0
 
+#define BLT_SOFTWARE_TIMER_ENABLE			1 //enable soft timer
 
 /////////////////// Clock  /////////////////////////////////
 #define CLOCK_SYS_CLOCK_HZ  	24000000
@@ -54,6 +55,8 @@ enum{
 /////////////////// watchdog  //////////////////////////////
 #define MODULE_WATCHDOG_ENABLE		0
 #define WATCHDOG_INIT_TIMEOUT		500  //ms
+
+extern char at_print_buf[256];
 
 /////////////open SWS digital pullup to prevent MCU err, this is must ////////////
 #define PA7_DATA_OUT			1

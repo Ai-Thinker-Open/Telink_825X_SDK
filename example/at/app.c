@@ -56,30 +56,30 @@ _attribute_data_retention_	own_addr_type_t 	app_own_address_type = OWN_ADDRESS_P
 #define TX_FIFO_NUM		16
 
 
-#if 0
-	MYFIFO_INIT(blt_rxfifo, RX_FIFO_SIZE, RX_FIFO_NUM);
-#else
-_attribute_data_retention_  u8 		 	blt_rxfifo_b[RX_FIFO_SIZE * RX_FIFO_NUM] = {0};
-_attribute_data_retention_	my_fifo_t	blt_rxfifo = {
-												RX_FIFO_SIZE,
-												RX_FIFO_NUM,
-												0,
-												0,
-												blt_rxfifo_b,};
-#endif
+// #if 0
+// 	MYFIFO_INIT(blt_rxfifo, RX_FIFO_SIZE, RX_FIFO_NUM);
+// #else
+// _attribute_data_retention_  u8 		 	blt_rxfifo_b[RX_FIFO_SIZE * RX_FIFO_NUM] = {0};
+// _attribute_data_retention_	my_fifo_t	blt_rxfifo = {
+// 												RX_FIFO_SIZE,
+// 												RX_FIFO_NUM,
+// 												0,
+// 												0,
+// 												blt_rxfifo_b,};
+// #endif
 
 
-#if 0
-	MYFIFO_INIT(blt_txfifo, TX_FIFO_SIZE, TX_FIFO_NUM);
-#else
-	_attribute_data_retention_  u8 		 	blt_txfifo_b[TX_FIFO_SIZE * TX_FIFO_NUM] = {0};
-	_attribute_data_retention_	my_fifo_t	blt_txfifo = {
-													TX_FIFO_SIZE,
-													TX_FIFO_NUM,
-													0,
-													0,
-													blt_txfifo_b,};
-#endif
+// #if 0
+// 	MYFIFO_INIT(blt_txfifo, TX_FIFO_SIZE, TX_FIFO_NUM);
+// #else
+// 	_attribute_data_retention_  u8 		 	blt_txfifo_b[TX_FIFO_SIZE * TX_FIFO_NUM] = {0};
+// 	_attribute_data_retention_	my_fifo_t	blt_txfifo = {
+// 													TX_FIFO_SIZE,
+// 													TX_FIFO_NUM,
+// 													0,
+// 													0,
+// 													blt_txfifo_b,};
+// #endif
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -213,8 +213,8 @@ void blt_pm_proc(void)
 }
 
 u8  mac_public[6];
-
-void user_init_normal(void)
+u8  mac_random_static[6];
+void ble_slave_init_normal(void)
 {
 	//random number generator must be initiated here( in the beginning of user_init_nromal)
 	//when deepSleep retention wakeUp, no need initialize again
@@ -222,7 +222,6 @@ void user_init_normal(void)
 	random_generator_init();  //this is must
 
 ////////////////// BLE stack initialization ////////////////////////////////////
-	u8  mac_random_static[6];
 	blc_initMacAddress(CFG_ADR_MAC, mac_public, mac_random_static);
 
 	#if(BLE_DEVICE_ADDRESS_TYPE == BLE_DEVICE_ADDRESS_PUBLIC)
@@ -347,7 +346,7 @@ void user_init_normal(void)
 }
 
 
-_attribute_ram_code_ void user_init_deepRetn(void)
+_attribute_ram_code_ void ble_slave_init_deepRetn(void)
 {
 #if (PM_DEEPSLEEP_RETENTION_ENABLE)
 
@@ -370,24 +369,3 @@ _attribute_ram_code_ void user_init_deepRetn(void)
 	// #endif
 #endif
 }
-
-
-/////////////////////////////////////////////////////////////////////
-// main loop flow
-/////////////////////////////////////////////////////////////////////
-
-void app_uart_loop();
-
-void main_loop (void)
-{
-	////////////////////////////////////// BLE entry /////////////////////////////////
-	blt_sdk_main_loop();
-
-
-	////////////////////////////////////// PM Process /////////////////////////////////
-	blt_pm_proc();
-
-	app_uart_loop();
-}
-
-

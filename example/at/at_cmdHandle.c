@@ -9,8 +9,7 @@
 #define STORAGE_NAME 1
 #define STORAGE_BAUD 2
 #define STORAGE_ATE  3
-
-static char buf[64] = { 0 };
+#define STORAGE_MODE 4
 
 extern u8 baud_buf[];
 extern  const u8 tbl_scanRsp[];
@@ -79,8 +78,8 @@ static unsigned char atCmd_Baud(char *pbuf,  int mode, int lenth)
 	if(mode == AT_CMD_MODE_READ)
 	{
 		at_print("\r\n+BAUD:");
-		buf[0] = baud_buf[0] + '0';
-		at_send(buf, 1);
+		at_print_buf[0] = baud_buf[0] + '0';
+		at_send(at_print_buf, 1);
 
 		return 0;
 	}
@@ -105,20 +104,20 @@ static unsigned char atCmd_Name(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
 	{
-		memset(buf, 0, 64);
+		memset(at_print_buf, 0, 64);
 
 		at_print("\r\n+NAME:");
 
 		if(my_scanRsp[1] == 0x09) //客户自定义的蓝牙设备名称
 		{
-			memcpy(buf, my_scanRsp+2, my_scanRsp[0] -1);
+			memcpy(at_print_buf, my_scanRsp+2, my_scanRsp[0] -1);
 		}
 		else
 		{
-			memcpy(buf, tbl_scanRsp+2, 10);
+			memcpy(at_print_buf, tbl_scanRsp+2, 10);
 		}
 		
-		at_print((char*)buf);
+		at_print((char*)at_print_buf);
 
 		return 0;
 	}
@@ -136,8 +135,8 @@ static unsigned char atCmd_Mac(char *pbuf,  int mode, int lenth)
 	if(mode == AT_CMD_MODE_READ)
 	{
 		at_print("\r\n+MAC:");
-		u_sprintf((char*)buf, "%X%X%X%X%X%X", mac_public[5], mac_public[4], mac_public[3], mac_public[2], mac_public[1], mac_public[0] );
-		at_print((char*)buf);
+		u_sprintf((char*)at_print_buf, "%X%X%X%X%X%X", mac_public[5], mac_public[4], mac_public[3], mac_public[2], mac_public[1], mac_public[0] );
+		at_print((char*)at_print_buf);
 		return 0;
 	}
 
@@ -250,6 +249,110 @@ static unsigned char atCmd_State(char *pbuf,  int mode, int lenth)
 	return 0;
 }
 
+//设置主机模式或者从机模式 0:从机模式，1:主机模式,重启后生效
+extern u32 device_mode;
+static unsigned char atCmd_Mode(char *pbuf,  int mode, int lenth)
+{
+	if(mode == AT_CMD_MODE_READ)
+	{
+		if(device_mode == 1) 
+			at_print("\r\n+MODE:1");
+		else
+			at_print("\r\n+MODE:0");
+	}
+	else if(mode == AT_CMD_MODE_SET)
+	{
+		if((pbuf[0] >= '0') && (pbuf[0] <= '1'))
+		{
+			pbuf[0] -= '0';
+			tinyFlash_Write(STORAGE_MODE, (unsigned char*)pbuf, 1);
+			return 0;
+		}
+		else
+		{
+			return 2;
+		}
+	}
+	else
+	{
+		return 2;
+	}
+	return 0;
+}
+
+static unsigned char Scan_Stop()
+{
+	at_print("OK\r\n");
+	blt_soft_timer_delete(Scan_Stop);
+	blc_ll_setScanEnable (BLC_SCAN_DISABLE, DUP_FILTER_DISABLE);
+}
+
+static unsigned char atCmd_Scan(char *pbuf,  int mode, int lenth)
+{
+	//set scan parameter and scan enable
+	blc_ll_setScanParameter(SCAN_TYPE_ACTIVE, SCAN_INTERVAL_100MS, SCAN_INTERVAL_100MS, OWN_ADDRESS_PUBLIC, SCAN_FP_ALLOW_ADV_ANY);
+	blc_ll_setScanEnable (BLC_SCAN_ENABLE, DUP_FILTER_ENABLE);
+
+	blt_soft_timer_add(&Scan_Stop, 3000000);//3S
+
+	return 0xff;
+}
+
+static unsigned char atCmd_Disconnect(char *pbuf,  int mode, int lenth)
+{
+	return 0;
+}
+
+static unsigned char atCmd_Connect(char *pbuf,  int mode, int lenth)
+{
+	if(mode == AT_CMD_MODE_SET)
+	{
+		if(lenth != 12) 
+		{
+			at_print("len error\r\n");
+			return 2;
+		}
+
+		for(lenth = 0; lenth < 12; lenth ++)
+		{
+			if(((pbuf[lenth] >= '0') && (pbuf[lenth] <= '9')) || ((pbuf[lenth] >= 'A') && (pbuf[lenth] <= 'F')))
+			{
+				if((pbuf[lenth] >= '0') && (pbuf[lenth] <= '9'))
+				{
+					pbuf[lenth] -= '0';
+				}
+				else
+				{
+					pbuf[lenth] -= 'A';
+					pbuf[lenth] += 0x0A;
+				}
+
+				if(lenth%2)
+				{
+					pbuf[lenth/2] = (pbuf[lenth-1] << 4) | pbuf[lenth];
+				}
+			}
+			else
+			{
+				return 2;
+			}
+		}
+
+		blc_ll_createConnection( SCAN_INTERVAL_100MS, SCAN_INTERVAL_100MS, INITIATE_FP_ADV_SPECIFY,  \
+								0, pbuf, BLE_ADDR_PUBLIC, \
+								CONN_INTERVAL_10MS, CONN_INTERVAL_10MS, 0, CONN_TIMEOUT_4S, \
+								0, 0xFFFF);
+	}
+	else
+	{
+		return 2;
+	}
+
+	at_print("Connecting... ...\r\n");
+	return 0xff;
+}
+
+
 //AT+SEND=46,4646464646546\r\n
 static unsigned char atCmd_Send(char *pbuf,  int mode, int lenth)
 {
@@ -294,8 +397,9 @@ _at_command_t gAtCmdTb_writeRead[] =
 	{ "NAME", 	atCmd_Name,	"Set/Read BT Name\r\n"},
 	{ "MAC", 	atCmd_Mac,	"Set/Read BT MAC\r\n"},
 	{ "READ", 	atCmd_Read,	"Read Flash Data\r\n"},
-	{ "STATE", 	atCmd_State,"Read BT Connect State\r\n"},
+	{ "MODE", 	atCmd_Mode, "Set/Read BT Mode\r\n"},
 	{ "SEND", 	atCmd_Send, "Send data to phone\r\n"},
+	{ "CONNECT",atCmd_Connect,"Connect other slave device\r\n"},
 	{0, 	0,	0}
 };
 
@@ -308,5 +412,7 @@ _at_command_t gAtCmdTb_exe[] =
 	{ "SLEEP", 	atCmd_Sleep, "Sleep\r\n"}, 	
 	{ "RESTORE",atCmd_Restore,"RESTORE\r\n"},
 	{ "STATE",  atCmd_State,  "State\r\n"},
+	{ "SCAN",   atCmd_Scan,   "Scan\r\n"},
+	{ "DISCONN",atCmd_Disconnect,"Scan\r\n"},
 	{0, 	0,	0}
 };

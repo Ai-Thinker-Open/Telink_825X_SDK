@@ -9,6 +9,7 @@ C_SRCS += \
 
 OBJS += \
 $(OUT_PATH)/app.o \
+$(OUT_PATH)/app_master.o \
 $(OUT_PATH)/app_att.o \
 $(OUT_PATH)/app_uart.o \
 $(OUT_PATH)/at_cmd.o \
