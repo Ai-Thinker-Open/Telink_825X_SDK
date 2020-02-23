@@ -50,6 +50,8 @@ void system_init()
 	if(gpio_read(BOOT_PIN) != 0)
 	{
 		gpio_setup_up_down_resistor(BOOT_PIN, PM_PIN_UP_DOWN_FLOAT);
+
+		gpio_set_func(BOOT_PIN, AS_SWIRE);
 		boot_jump();
 	}
 
@@ -61,6 +63,7 @@ void system_init()
 	clock_init(SYS_CLK_24M_Crystal);
 #endif
 	gpio_setup_up_down_resistor(BOOT_PIN, PM_PIN_UP_DOWN_FLOAT);
+	gpio_set_func(BOOT_PIN, AS_SWIRE);
 }
 
 void main_loop (void)

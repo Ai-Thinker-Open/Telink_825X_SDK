@@ -31,9 +31,6 @@ bootloader存放在Flash的前16KBytes。上电时这部分代码会检测SWS引
 
 由上表可知，用户编译的固件在Flash中被拆分成了两部分，即将其前16KBytes的内容(Ram Code)放到了0x2C000的位置，非 Ram Code 存放地址不变。
 
-## 注意
-
-BootLoader中用于复制用户程序的代码占据了32Bytes的内存，0x843fe0 - 0x844000 这部分内存将不可用。
 
 ## 指令格式
 

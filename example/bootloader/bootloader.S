@@ -66,8 +66,8 @@ __start:					@ MUST,  referenced by boot.link
 @	.word	(BUILD_VERSION)
 	.org 0x8
 	.word	(0x544c4e4b)
-	.word	(0x00880000 + _ram_use_size_div_16_)
-@	.word	(0x00880000 + 0x400)
+@	.word	(0x00880000 + _ram_use_size_div_16_)
+	.word	(0x00880000 + 0x800)
 
 	.org 0x10
 	tj		__irq
@@ -126,8 +126,8 @@ __reset:
 	
 	tj UART_BOOT_END
 
+	.org 0x60
 UART_BOOT_START:
-.org 0x60
 	tloadr	r1, UART_BOOT_DATA			@ Source addr
 	tloadr	r2, UART_BOOT_DATA + 4		@ Direct addr
 	tloadr	r3, UART_BOOT_DATA + 8		@ Direct addr + Len
@@ -157,16 +157,19 @@ USER_COPY:
 	tadd    r2, #4
 	tj		USER_COPY
 USER_COPY_END:
-	.word 	0x980797fc	@tjl 	__start from 0x3FE0
+	.word 	0x980797f6	@tjl 	__start from 0x9FE0
+
+	@9fee:	97f6 9807 	tjl	0 <__start>
+	@3fee:	97fc 9807 	tjl	0 <__start>
 
 	.align 4
 UART_BOOT_DATA:
 	.word	0x80
-	.word	0x843FE0
-	.word	0x844000
+	.word	0x849FE0
+	.word	0x84A000
 	.word	0x02C000
 	.word	0x840000
-	.word	0x843FE0
+	.word	0x844000
 
 UART_BOOT_END:
 
@@ -309,9 +312,9 @@ DAT0:
 	.word	(_start_bss_)               @16
 	.word	(_end_bss_)                 @20
 	.word	(0x80060c)                  @24
-	.word	(0x844000)                  @28
-	.word	(0x844100)                  @32
-	.word	(0x40)                      @36
+	.word	(0x84A000)                  @28
+	.word	(0x84A100)                  @32
+	.word	(0xA0)                      @36
 @	.word	_ictag_start_               @28		@ IC tag start
 @	.word	_ictag_end_	            	@32		@ IC tag end
 @	.word	_ramcode_size_div_256_		@36

@@ -15,7 +15,7 @@
 #########################################################################################
 
 # Select Chip  
-TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258 -D__PROJECT_8258_DRIVER_TEST__=1 -D_MODULE_TYPE_=TB_01
+TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258 -D__PROJECT_8258_DRIVER_TEST__=1 -D_MODULE_TYPE_=TB_02
 
 # Select link lib
 LIBS :=  -llt_8258
@@ -34,7 +34,7 @@ PROJECT_NAME := bootloader
 #########################################################################################
 # The following content need not be modified by the user!!!!!							#
 #########################################################################################
-PROJECT_PATH := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+PROJECT_PATH := .
 OUT_PATH :=$(PROJECT_PATH)/out
 
 
