@@ -48,7 +48,7 @@ def  combine(args) :
     df.seek(0x2c000,0)
     sf.seek(0x00000,0)
 
-    df.write(sf.read(0x3FFC))
+    df.write(sf.read(0x4000))
     sf.close()
 
     df.seek(0, 0)
