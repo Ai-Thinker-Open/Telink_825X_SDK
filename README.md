@@ -5,16 +5,16 @@ Telink 泰凌 TLSR825X 蓝牙芯片软件开发套件
 # 使用方法
 ---------------------------------------------------
 
-### 获取TC32编译工具链(文档仅适用于Linux)
+### 获取TC32编译工具链(文档仅适用于Linux 64Bit系统)
 >目前仅测试了linux系统，Mac OS及Windows系统仅提供了编译工具变，需自行设置环境变量
 
->Mac OS版本工具链下载地址 ```https://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32-mac.zip```
+>Mac OS版本工具链下载地址 ```http://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32-mac.zip```
 
->Windows 版本工具链下载地址 ```https://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32-win.rar```
+>Windows 版本工具链下载地址 ```http://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32_win.rar```
 
 linux版本获取编译工具链
 
-    wget https://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32_gcc_v2.0.tar.bz2
+    wget http://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32_gcc_v2.0.tar.bz2
 
 解压到opt文件夹 *(也可解压到其他文件夹)*
 
@@ -37,6 +37,13 @@ linux版本获取编译工具链
     Configured with: ../../gcc-4.5.1/configure --program-prefix=tc32-elf- --target=tc32-elf --prefix=/opt/tc32 --enable-languages=c --libexecdir=/opt/tc32/lib --with-gnu-as --with-gnu-ld --without-headers --disable-decimal-float --disable-nls --disable-mathvec --with-pkgversion='Telink TC32 version 2.0 build' --without-docdir --without-fp --without-tls --disable-shared --disable-threads --disable-libffi --disable-libquadmath --disable-libstdcxx-pch --disable-libmudflap --disable-libgomp --disable-libssp -v --without-docdir --enable-soft-float --with-newlib --with-gcc --with-gnu- --with-gmp=/opt/tc32/addontools --with-mpc=/opt/tc32/addontools --with-mpfr=/opt/tc32/addontools
     Thread model: single
     gcc version 4.5.1.tc32-elf-1.5 (Telink TC32 version 2.0 build) 
+
+### 安装Python3及其依赖
+烧录工具采用python语言编写，所以须确保你的电脑安装了python3运行环境及所需依赖包pyserial
+
+python3请自行安装，一下指令用于安装prserial
+
+    pip install pyserial
 
 ### 获取SDK
 
@@ -76,7 +83,7 @@ RX|TX|
 |RTS|RST|
 |DTR|SWS|
 
-注意：PA1为boot选择引脚，为低电平进入下载模式，为高电平进入运行模式
+注意：SWS为boot选择引脚，为低电平进入下载模式，为高电平进入运行模式
 
 烧录指令：
 

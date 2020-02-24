@@ -33,10 +33,13 @@ PROJECT_NAME := at
 # 设置下载固件的串口号
 DOWNLOAD_PORT := /dev/ttyUSB0
 
+# 设置睡眠保留RAM大小，默认16KB (只有16KB，32KB两种设置)
+RETENTION_RAM_SIZE := 32KB
+
 #########################################################################################
 # The following content need not be modified by the user!!!!!							#
 #########################################################################################
-PROJECT_PATH := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+PROJECT_PATH := .
 OUT_PATH :=$(PROJECT_PATH)/out
 
 ifneq ($(TEL_PATH)/make/makefile, $(wildcard $(TEL_PATH)/make/makefile))

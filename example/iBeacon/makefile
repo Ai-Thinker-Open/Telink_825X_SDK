@@ -37,7 +37,7 @@ DOWNLOAD_PORT := /dev/ttyUSB0
 #########################################################################################
 # The following content need not be modified by the user!!!!!							#
 #########################################################################################
-PROJECT_PATH := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+PROJECT_PATH := .
 OUT_PATH :=$(PROJECT_PATH)/out
 
 ifneq ($(TEL_PATH)/make/makefile, $(wildcard $(TEL_PATH)/make/makefile))

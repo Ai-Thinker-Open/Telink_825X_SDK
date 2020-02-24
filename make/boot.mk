@@ -16,14 +16,13 @@ OUT_DIR += /boot/8251 /boot/8253 /boot/8258
 # $(OUT_PATH)/boot/8253/cstartup_8253_RET_16K.o \
 # $(OUT_PATH)/boot/8253/cstartup_8253_RET_32K.o 
 
-ifeq ($(BOOT_MODE), need_bootloader)
-	BOOT_FLAG := -DMCU_APP_8258_RET_16K
+ifeq ($(RETENTION_RAM_SIZE), 32KB)
+	BOOT_FLAG := -DMCU_STARTUP_8258_RET_32K
 else
 	BOOT_FLAG := -DMCU_STARTUP_8258_RET_16K
 endif
 
 OBJS += \
-$(OUT_PATH)/boot/8258/app_8258_RET_16K.o \
 $(OUT_PATH)/boot/8258/cstartup_8258.o \
 $(OUT_PATH)/boot/8258/cstartup_8258_RET_16K.o \
 $(OUT_PATH)/boot/8258/cstartup_8258_RET_32K.o 

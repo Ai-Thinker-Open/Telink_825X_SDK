@@ -53,11 +53,14 @@ INCLUDE_PATHS := -I$(TEL_PATH)/components -I$(PROJECT_PATH)
 
 GCC_FLAGS += $(TEL_CHIP)
 
-LS_FLAGS := $(TEL_PATH)/components/boot.link
+ifeq ($(RETENTION_RAM_SIZE), 32KB)
+	LS_FLAGS := $(TEL_PATH)/components/boot/boot_32k_retn_8253_8258.link
+else
+	LS_FLAGS := $(TEL_PATH)/components/boot/boot_16k_retn_8251_8253_8258.link
+endif
 
 
 #include SDK makefile
-#-include $(TEL_PATH)/make/boot_8258.mk
 -include $(TEL_PATH)/make/application.mk
 -include $(TEL_PATH)/make/boot.mk
 -include $(TEL_PATH)/make/common.mk
