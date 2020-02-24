@@ -76,15 +76,7 @@ void app_uart_init(AT_BAUD baud)
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
 	uart_recbuff_init( (unsigned short *)my_fifo_wptr(&uart_rx_fifo), UART_DATA_LEN);
 
-#if defined _MODULE_TB_01_  //TB01模块
-	uart_gpio_set(UART_TX_PB1, UART_RX_PB0);// uart tx/rx pin set
-	#pragma message("uart_gpio_set(UART_TX_PB1, UART_RX_PB0)")
-#elif defined _MODULE_TB_02_  //TB02模块
-	uart_gpio_set(UART_TX_PB1, UART_RX_PA0);// uart tx/rx pin set
-	#pragma message("uart_gpio_set(UART_TX_PB1, UART_RX_PA0)")
-#else
-	#error "please set module type"
-#endif
+	uart_gpio_set(UART_TX_PB1, UART_RX_PIN);// uart tx/rx pin set
 
 	uart_reset();  //will reset uart digital registers from 0x90 ~ 0x9f, so uart setting must set after this reset
 

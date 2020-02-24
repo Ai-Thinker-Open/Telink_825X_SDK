@@ -48,19 +48,9 @@ static unsigned char atCmd_Sleep(char *pbuf,  int mode, int lenth)
 {
 	at_print("\r\nOK\r\n");
 
-#if defined (_MODULE_TB_01_) //TB01模块
-	gpio_setup_up_down_resistor(GPIO_PB0, PM_PIN_PULLDOWN_100K);
-	cpu_set_gpio_wakeup (GPIO_PB0, Level_Low, 1); 
-	#pragma message("wakeup pin GPIO_PB0")
-#elif defined (_MODULE_TB_02_) //TB02模块
-	gpio_setup_up_down_resistor(GPIO_PA0, PM_PIN_PULLDOWN_100K);
-	cpu_set_gpio_wakeup (GPIO_PA0, Level_Low, 1); 
-	#pragma message("wakeup pin GPIO_PA0")
-#else
-	#error "please set module type"
-#endif
+	gpio_setup_up_down_resistor(UART_RX_PIN, PM_PIN_PULLDOWN_100K);
+	cpu_set_gpio_wakeup (UART_RX_PIN, Level_Low, 1); 
 
-	
 	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_PAD, 0);  //deepsleep
 	return 0;
 }
@@ -391,6 +381,61 @@ static unsigned char atCmd_Send(char *pbuf,  int mode, int lenth)
 	}
 }
 
+//用于测试开发板
+static unsigned char atCmd_Board_test(char *pbuf,  int mode, int lenth)
+{
+	gpio_set_func(GPIO_PC2, AS_GPIO);
+	gpio_set_func(GPIO_PC3, AS_GPIO);
+	gpio_set_func(GPIO_PC4, AS_GPIO);
+	gpio_set_func(GPIO_PB4, AS_GPIO);
+	gpio_set_func(GPIO_PB5, AS_GPIO);
+
+	gpio_set_output_en(GPIO_PC2, 1);//enable output
+	gpio_set_output_en(GPIO_PC3, 1);//enable output
+	gpio_set_output_en(GPIO_PC4, 1);//enable output
+	gpio_set_output_en(GPIO_PB4, 1);//enable output
+	gpio_set_output_en(GPIO_PB5, 1);//enable output
+
+	gpio_set_input_en(GPIO_PC2, 0);//disenable input
+	gpio_set_input_en(GPIO_PC3, 0);//disenable input
+	gpio_set_input_en(GPIO_PC4, 0);//disenable input
+	gpio_set_input_en(GPIO_PB4, 0);//disenable input
+	gpio_set_input_en(GPIO_PB5, 0);//disenable input
+
+	while(1)
+	{
+		gpio_write(GPIO_PC2,1);
+		gpio_write(GPIO_PC3,0);
+		gpio_write(GPIO_PC4,0);
+		gpio_write(GPIO_PB4,0);
+		gpio_write(GPIO_PB5,0); WaitMs(200);
+
+		gpio_write(GPIO_PC2,0);
+		gpio_write(GPIO_PC3,1);
+		gpio_write(GPIO_PC4,0);
+		gpio_write(GPIO_PB4,0);
+		gpio_write(GPIO_PB5,0); WaitMs(200);
+
+		gpio_write(GPIO_PC2,0);
+		gpio_write(GPIO_PC3,0);
+		gpio_write(GPIO_PC4,1);
+		gpio_write(GPIO_PB4,0);
+		gpio_write(GPIO_PB5,0); WaitMs(200);
+
+		gpio_write(GPIO_PC2,0);
+		gpio_write(GPIO_PC3,0);
+		gpio_write(GPIO_PC4,0);
+		gpio_write(GPIO_PB4,1);
+		gpio_write(GPIO_PB5,0); WaitMs(200);
+
+		gpio_write(GPIO_PC2,0);
+		gpio_write(GPIO_PC3,0);
+		gpio_write(GPIO_PC4,0);
+		gpio_write(GPIO_PB4,0);
+		gpio_write(GPIO_PB5,1); WaitMs(200);
+	}
+}
+
 _at_command_t gAtCmdTb_writeRead[] =
 { 
 	{ "BAUD", 	atCmd_Baud,	"Set/Read BT Baud\r\n"},
@@ -413,6 +458,7 @@ _at_command_t gAtCmdTb_exe[] =
 	{ "RESTORE",atCmd_Restore,"RESTORE\r\n"},
 	{ "STATE",  atCmd_State,  "State\r\n"},
 	{ "SCAN",   atCmd_Scan,   "Scan\r\n"},
-	{ "DISCONN",atCmd_Disconnect,"Scan\r\n"},
+	{ "DISCONN",atCmd_Disconnect,"disconnect\r\n"},
+	{ "BTEST",  atCmd_Board_test,"Board_test\r\n"},
 	{0, 	0,	0}
 };
