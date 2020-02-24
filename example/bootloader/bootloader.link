@@ -77,7 +77,7 @@ SECTIONS
         }        
           
 
-	. = 0x844900;
+	. = 0x84A900;
         .data :
           AT ( _dstored_ )
          {

@@ -5,6 +5,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 OBJS += \
 $(OUT_PATH)/app_uart.o \
+$(OUT_PATH)/app_flash.o \
 $(OUT_PATH)/main.o
 
 # Each subdirectory must supply rules for building sources it contributes

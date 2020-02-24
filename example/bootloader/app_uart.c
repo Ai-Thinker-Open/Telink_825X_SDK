@@ -22,7 +22,7 @@
 #include "tl_common.h"
 #include "drivers.h"
 
-#define BOOT_VERSION "V0.4"
+#define BOOT_VERSION "V0.5"
 
 volatile unsigned char uart_rx_flag=0;
 volatile unsigned char uart_dmairq_tx_cnt=0;
@@ -39,21 +39,13 @@ typedef struct{
 uart_data_t rec_buff = {0,  {0, } };
 uart_data_t trans_buff = {0, {0,} };
 
-
 void app_uart_init(void)
 {
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
 	uart_recbuff_init( (unsigned char *)&rec_buff, sizeof(rec_buff));
 
-#if (_MODULE_TYPE_ == TB_01) //TB01模块
-	uart_gpio_set(UART_TX_PB1, UART_RX_PB0);// uart tx/rx pin set
-	#pragma message("_MODULE_TYPE_ == TB_01")
-#elif (_MODULE_TYPE_ == TB_02) //TB02模块
-	uart_gpio_set(UART_TX_PB1, UART_RX_PA0);// uart tx/rx pin set
-	#pragma message("_MODULE_TYPE_ == TB_02")
-#else
-	#error "please set module type"
-#endif
+	uart_gpio_set(UART_TX_PB1, UART_RX_PIN);// uart tx/rx pin set
+
 	uart_reset();  //will reset uart digital registers from 0x90 ~ 0x9f, so uart setting must set after this reset
 
 	//baud rate: 115200
@@ -127,32 +119,9 @@ enum{
 	CMD_WRTE , 		 //?Flash
 	CMD_READ ,       //?Flash
 	CMD_ERAS ,       //??Flash
+	CMD_MUID ,
 };
 
-// /**
-//  * @brief This function serves to erase a sector.
-//  * @param[in]   addr the start address of the sector needs to erase.
-//  * @return none
-//  */
-// _attribute_ram_code_ void flash_erase_sector(unsigned long addr);
-
-// /**
-//  * @brief This function writes the buffer's content to a page.
-//  * @param[in]   addr the start address of the page
-//  * @param[in]   len the length(in byte) of content needs to write into the page
-//  * @param[in]   buf the start address of the content needs to write into
-//  * @return none
-//  */
-// _attribute_ram_code_ void flash_write_page(unsigned long addr, unsigned long len, unsigned char *buf);
-
-// /**
-//  * @brief This function reads the content from a page to the buf.
-//  * @param[in]   addr the start address of the page
-//  * @param[in]   len the length(in byte) of content needs to read out from the page
-//  * @param[out]  buf the start address of the buffer
-//  * @return none
-//  */
-// _attribute_ram_code_ void flash_read_page(unsigned long addr, unsigned long len, unsigned char *buf);
 
 int flash_write(unsigned long addr, unsigned char *buf)
 {
@@ -161,6 +130,9 @@ int flash_write(unsigned long addr, unsigned char *buf)
 }
 char buff[128] = { 0 };
 unsigned long addr;
+unsigned int flash_mid;
+unsigned char flash_uid[16];
+extern int flash_read_mid_uid_with_check( unsigned int *flash_mid ,unsigned char *flash_uid);
 void app_uart_loop(void)
 {
 
@@ -205,7 +177,7 @@ void app_uart_loop(void)
 					WaitMs(10);
 					rec_buff.dma_len = 0;
 
-					sprintf(buff, "OK_02\r\n", rec_buff.dma_len );
+					sprintf(buff, "OK_02\r\n");
 					break;
 
 				case CMD_ERAS: //擦除Flash
@@ -222,13 +194,26 @@ void app_uart_loop(void)
 							flash_erase_sector(addr);
 							addr += 0x1000;
 						}
-						sprintf(buff, "OK_03\r\n", rec_buff.dma_len );
+						sprintf(buff, "OK_03\r\n");
 					}
 					else
 					{
-						sprintf(buff, "Fail\r\n", rec_buff.dma_len );
+						sprintf(buff, "Fail\r\n");
 					}
 					break;
+
+				case CMD_MUID: //读取Flash ID
+
+					flash_mid = 0;
+					if(flash_read_mid_uid_with_check(&flash_mid ,flash_uid) == 1) //读取成功
+					{
+						sprintf(buff, "OK_04:%04x,%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\r\n", flash_mid ,
+						flash_uid[0],flash_uid[1],flash_uid[2],flash_uid[3],flash_uid[4],flash_uid[5],flash_uid[6],flash_uid[7],
+						flash_uid[8],flash_uid[9],flash_uid[10],flash_uid[11],flash_uid[12],flash_uid[13],flash_uid[14],flash_uid[15]);
+					}else
+					{
+						sprintf(buff, "Fail\r\n", rec_buff.dma_len );
+					}
 
 				default:
 					break;

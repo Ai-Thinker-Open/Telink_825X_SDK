@@ -42,8 +42,15 @@ enum{
 };
 
 
-#define TB_01 0
-#define TB_02 1
+#if defined  _MODULE_TB_01_  //TB01模块
+	#define UART_RX_PIN  UART_RX_PB0
+#elif defined _MODULE_TB_02_ //TB02模块
+	#define UART_RX_PIN  UART_RX_PA0
+#elif defined _MODULE_TB_02_DEV_BOARD_ //TB02开发板
+	#define UART_RX_PIN  UART_RX_PB7
+#else
+	#error "please set module type"
+#endif
 
 /////////////////////////////////////// PRINT DEBUG INFO ///////////////////////////////////////
 #if (UART_PRINT_DEBUG_ENABLE)
