@@ -39,7 +39,7 @@ typedef struct{
 uart_data_t rec_buff = {0,  {0, } };
 uart_data_t trans_buff = {0, {0,} };
 
-void app_uart_init(void)
+void app_uart_init(int baud)
 {
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
 	uart_recbuff_init( (unsigned char *)&rec_buff, sizeof(rec_buff));
@@ -53,7 +53,15 @@ void app_uart_init(void)
 //		uart_init(118, 13, PARITY_NONE, STOP_BIT_ONE);
 		uart_init(9, 13, PARITY_NONE, STOP_BIT_ONE);
 	#elif (CLOCK_SYS_CLOCK_HZ == 24000000)
-		uart_init(1, 12, PARITY_NONE, STOP_BIT_ONE); //baudrate = 500000
+		if(baud == 115200)
+		{
+			uart_init(12, 15, PARITY_NONE, STOP_BIT_ONE); //baudrate = 115200
+		}
+		else
+		{
+			uart_init(1, 12, PARITY_NONE, STOP_BIT_ONE); //baudrate = 921600
+		}
+		
 	#endif
 
 	uart_dma_enable(1, 1); 	//uart data in hardware buffer moved by dma, so we need enable them first
@@ -115,11 +123,12 @@ void uart_send(char * data, u32 len)
 }
 
 enum{
-    CMD_VRSN = 0x00, //??Boot???
-	CMD_WRTE , 		 //?Flash
-	CMD_READ ,       //?Flash
-	CMD_ERAS ,       //??Flash
-	CMD_MUID ,
+	CMD_VRSN = 0x00,	//读取boot版本
+	CMD_WRTE ,			//写Flash
+	CMD_READ ,			//读Flash
+	CMD_ERAS ,			//擦除Flash
+	CMD_MUID ,			//读取MUID
+	CMD_BAUD ,			//更改波特率
 };
 
 
@@ -129,7 +138,7 @@ int flash_write(unsigned long addr, unsigned char *buf)
 	return 0;
 }
 char buff[128] = { 0 };
-unsigned long addr;
+unsigned long addr, baud_change_tick, baud_change_flag = 0;
 unsigned int flash_mid;
 unsigned char flash_uid[16];
 extern int flash_read_mid_uid_with_check( unsigned int *flash_mid ,unsigned char *flash_uid);
@@ -214,12 +223,31 @@ void app_uart_loop(void)
 					{
 						sprintf(buff, "Fail\r\n", rec_buff.dma_len );
 					}
+					break;
 
+				case CMD_BAUD:
+				{
+					if(baud_change_flag)//如果当前是921600波特率
+					{
+						baud_change_flag = 0;
+					}
+					else //如果是115200波特率
+					{
+						app_uart_init(921600);//将波特率改成921600
+						WaitMs(5);
+
+						baud_change_tick = clock_time();
+						baud_change_flag = 1;
+					}
+
+					sprintf(buff, "OK_05\r\n");
+					
+					break;
+				}
 				default:
 					break;
 			}
 			uart_print(buff);
-			//WaitMs(0);
 		}
 		else
 		{
@@ -228,7 +256,15 @@ void app_uart_loop(void)
 			WaitMs(30);
 		}
 		
-
 		rec_buff.dma_len = 0;
+	}
+
+	if(baud_change_flag)
+	{
+		if((clock_time() - baud_change_tick ) > 500000) //改变波特率超时
+		{
+			baud_change_flag = 0;
+			app_uart_init(115200);//将波特率改回115200
+		}
 	}
 }

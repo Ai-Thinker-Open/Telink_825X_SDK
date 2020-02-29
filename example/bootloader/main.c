@@ -23,7 +23,7 @@
 #include "drivers.h"
 
 extern void uart_print(char * str);
-extern void app_uart_init(void);
+extern void app_uart_init(int baud);
 extern void app_uart_loop(void);
 
 #define BOOT_PIN GPIO_PA7
@@ -77,7 +77,7 @@ int main (void)
 {
 	system_init();
 
-	app_uart_init();
+	app_uart_init(115200);
 
 	uart_print("     \r\nboot loader ready\r\n");
 
