@@ -25,23 +25,92 @@
 #include "vendor/common/user_config.h"
 #include "app_config.h"
 
-#include "vendor/common/blt_led.h"
 #include "drivers/8258/gpio_8258.h"
 
 void user_init()
 {
-	device_led_init(GPIO_PB0, 1);
-	led_cfg_t my_led_event = {500, 500, 250,0};
-	device_led_setup(my_led_event);
+	gpio_set_func(GPIO_PC2, AS_GPIO);
+	gpio_set_func(GPIO_PC3, AS_GPIO);
+	gpio_set_func(GPIO_PC4, AS_GPIO);
+	gpio_set_func(GPIO_PB4, AS_GPIO);
+	gpio_set_func(GPIO_PB5, AS_GPIO);
+
+	gpio_set_output_en(GPIO_PC2, 1);
+	gpio_set_output_en(GPIO_PC3, 1);
+	gpio_set_output_en(GPIO_PC4, 1);
+	gpio_set_output_en(GPIO_PB4, 1);
+	gpio_set_output_en(GPIO_PB5, 1);
+
+	gpio_set_input_en(GPIO_PC2, 0); 
+	gpio_set_input_en(GPIO_PC3, 0); 
+	gpio_set_input_en(GPIO_PC4, 0); 
+	gpio_set_input_en(GPIO_PB4, 0); 
+	gpio_set_input_en(GPIO_PB5, 0); 
+
+	gpio_set_func(GPIO_PD2, AS_GPIO);
+	gpio_setup_up_down_resistor(GPIO_PD2, PM_PIN_PULLUP_10K);
+	gpio_set_output_en(GPIO_PD2, 0);
+	gpio_set_input_en(GPIO_PD2, 1); 	
 }
 
+void my_key_proocess()
+{
+	int c = 20;
+	while (c--)
+	{	
+		if(gpio_read(GPIO_PD2) == 0)
+		{
+			while (gpio_read(GPIO_PD2) == 0){sleep_ms(1);};
+
+			sleep_ms(20);
+			while (1)
+			{
+				if(gpio_read(GPIO_PD2) == 0) 
+				{
+					while (gpio_read(GPIO_PD2) == 0){sleep_ms(1);};
+					return;
+				}
+				sleep_ms(1);
+			}
+		}
+		sleep_ms(10);
+	}
+}
 
 /////////////////////////////////////////////////////////////////////
 // main loop flow
 /////////////////////////////////////////////////////////////////////
 void main_loop ()
 {
-	device_led_process();
+	gpio_write(GPIO_PC2, 1); 
+	gpio_write(GPIO_PC3, 0); 
+	gpio_write(GPIO_PC4, 0); 
+	gpio_write(GPIO_PB4, 0); 
+	gpio_write(GPIO_PB5, 0);  my_key_proocess();
+
+	gpio_write(GPIO_PC2, 0); 
+	gpio_write(GPIO_PC3, 1); 
+	gpio_write(GPIO_PC4, 0); 
+	gpio_write(GPIO_PB4, 0); 
+	gpio_write(GPIO_PB5, 0); my_key_proocess();
+
+	gpio_write(GPIO_PC2, 0); 
+	gpio_write(GPIO_PC3, 0); 
+	gpio_write(GPIO_PC4, 1); 
+	gpio_write(GPIO_PB4, 0); 
+	gpio_write(GPIO_PB5, 0); my_key_proocess();
+
+	gpio_write(GPIO_PC2, 0); 
+	gpio_write(GPIO_PC3, 0); 
+	gpio_write(GPIO_PC4, 0); 
+	gpio_write(GPIO_PB4, 1); 
+	gpio_write(GPIO_PB5, 0); my_key_proocess();
+
+	gpio_write(GPIO_PC2, 0); 
+	gpio_write(GPIO_PC3, 0); 
+	gpio_write(GPIO_PC4, 0); 
+	gpio_write(GPIO_PB4, 0); 
+	gpio_write(GPIO_PB5, 5); my_key_proocess();
 }
 
 _attribute_ram_code_ void irq_handler(void)
@@ -55,11 +124,11 @@ void system_init()
 
 	cpu_wakeup_init();
 
-	int deepRetWakeUp = pm_is_MCU_deepRetentionWakeup();  //MCU deep retention wakeUp
+	//int deepRetWakeUp = pm_is_MCU_deepRetentionWakeup();  //MCU deep retention wakeUp
 
 	rf_drv_init(RF_MODE_BLE_1M);
 
-	gpio_init(!deepRetWakeUp);
+	gpio_init(1);
 
 #if (CLOCK_SYS_CLOCK_HZ == 16000000)
 	clock_init(SYS_CLK_16M_Crystal);
@@ -67,15 +136,13 @@ void system_init()
 	clock_init(SYS_CLK_24M_Crystal);
 #endif
 
-	if(!deepRetWakeUp)
-	{
-		random_generator_init();
-	}
 }
 
 _attribute_ram_code_ int main (void)    //must run in ramcode
 {
 	system_init();
+
+	user_init();
 
     irq_enable();
 
