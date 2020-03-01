@@ -138,7 +138,7 @@ int flash_write(unsigned long addr, unsigned char *buf)
 	return 0;
 }
 char buff[128] = { 0 };
-unsigned long addr, baud_change_tick, baud_change_flag = 0;
+unsigned long addr;
 unsigned int flash_mid;
 unsigned char flash_uid[16];
 extern int flash_read_mid_uid_with_check( unsigned int *flash_mid ,unsigned char *flash_uid);
@@ -227,18 +227,8 @@ void app_uart_loop(void)
 
 				case CMD_BAUD:
 				{
-					if(baud_change_flag)//如果当前是921600波特率
-					{
-						baud_change_flag = 0;
-					}
-					else //如果是115200波特率
-					{
-						app_uart_init(921600);//将波特率改成921600
-						WaitMs(5);
-
-						baud_change_tick = clock_time();
-						baud_change_flag = 1;
-					}
+					app_uart_init(921600);//将波特率改成921600
+					WaitMs(20);
 
 					sprintf(buff, "OK_05\r\n");
 					
@@ -257,14 +247,5 @@ void app_uart_loop(void)
 		}
 		
 		rec_buff.dma_len = 0;
-	}
-
-	if(baud_change_flag)
-	{
-		if((clock_time() - baud_change_tick ) > 500000) //改变波特率超时
-		{
-			baud_change_flag = 0;
-			app_uart_init(115200);//将波特率改回115200
-		}
 	}
 }
