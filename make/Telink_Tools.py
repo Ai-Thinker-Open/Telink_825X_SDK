@@ -141,15 +141,17 @@ def connect_chip(_port):
         return True
     return False
 
+## retrun true : way1  false: way2
 def change_baud(_port):
-
     uart_write(_port, struct.pack('>BH', CMD_CHANGE_BAUD, 0))
-
     _port.baudrate = 921600
     time.sleep(0.01)
+
     if wait_result(_port, RES_CHANGE_BAUD, 50):
+        print("Try the Way2 to start download the  file  to the board ... \033[3;32mSuccess!\033[0m") #921600
         return True
     else:
+        print("Try to start download the file to the board ... \033[3;32mSuccess!\033[0m") # 115200
         _port.baudrate = 115200
         connect_chip(_port)
         return False
@@ -193,16 +195,10 @@ def read_flash(_port, args):
         print("\033[3;31mFail!\033[0m")
 
 def burn(_port, args):
-
-    print("Try to change Baud to 921600 ... ... ", end="")
+    #  Try to change Baud to 921600 
     sys.stdout.flush()
-
-    if change_baud(_port):
-        print("\033[3;32mOK!\033[0m")
-    else :
-        print("\033[3;33mFail!\033[0m")
-
-    print("Erase Flash at 0x4000 len 176 KB ... ... ", end="")
+    change_baud(_port)
+    print("Start erase Flash at 0x4000 len 176 KB . ", end="")
     sys.stdout.flush()
 
     if not telink_flash_erase(_port, 0x4000, 44):
@@ -245,6 +241,10 @@ def burn_triad(_port, args):
     if(len(data) != 26):
         print("\033[3;31mTriad Error!\033[0m")
         return
+
+    print("Your productID =  " + args.productID )
+    print("Your MAC =   " + args.MAC )
+    print("Your Secret =   " + args.Secret )
 
     print("Erase Flash at 0x78000 len 4 KB ... ... ",end="")
     sys.stdout.flush()
@@ -334,6 +334,9 @@ def main(custom_commandline=None):
     _port.close()
 
 def _main():
+    print("-- EN: Please download the Ai-Thinker Bootload Firware to the board first . \033[3;32m\033[0m") #921600
+    print("-- CH: 烧录前务必确定烧录安信可科技制作的bootload固件（官方正品出厂前已烧录）。\033[3;32m\033[0m") #921600
+    # print("\033[3;32m \033[0m") #921600
     #try:
     main()
     # except FatalError as e:
