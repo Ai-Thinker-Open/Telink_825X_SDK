@@ -14,7 +14,7 @@ windows平台下需要安装git，python，已安装了的无需重复安装。
 
 另外，对于未接触过```git```的开发者，建议学习下```git```的使用。
 
-## 安装Python3
+## 安装Python
 
 在左面点击鼠标右键，然后点击```Git Bash Here```选项，进入命令行，输入 ```python -V``` 按回车键，如果出现类似如下现象，说明你已经安装过python，无需重复安装。如果提示```bash: python: command not found```,说明的的电脑未安装python，需按照下文的指导安装python。
 

@@ -7,11 +7,11 @@ Telink 泰凌 TLSR825X 蓝牙芯片软件开发套件,推荐配合安信可开�
 
 ### 搭建开发环境
 
->Windows系统开发环境搭建： [Window开发环境搭建](https://github.com/Ai-Thinker-Open/Telink_825X_SDK/start_windows.md)
+>Windows系统开发环境搭建： [Window开发环境搭建](https://github.com/Ai-Thinker-Open/Telink_825X_SDK/blob/master/start_windows.md)
 
-> Linux 64Bit 系统开发环境搭建：[Linux开发环境搭建](https://github.com/Ai-Thinker-Open/Telink_825X_SDK/start_linux.md)
+> Linux 64Bit 系统开发环境搭建：[Linux开发环境搭建](https://github.com/Ai-Thinker-Open/Telink_825X_SDK/blob/master/start_linux.md)
 
-> mac OS 开发环境搭建：[mac OS 开发环境搭建](https://github.com/Ai-Thinker-Open/Telink_825X_SDK/start_macos.md)
+> mac OS 开发环境搭建：[mac OS 开发环境搭建](https://github.com/Ai-Thinker-Open/Telink_825X_SDK/blob/master/start_macos.md)
 
 
 ### 获取SDK
