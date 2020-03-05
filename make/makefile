@@ -75,7 +75,7 @@ endif
 LST_FILE := $(OUT_PATH)/$(PROJECT_NAME).lst
 BIN_FILE := $(OUT_PATH)/$(PROJECT_NAME).bin
 ELF_FILE := $(OUT_PATH)/$(PROJECT_NAME).elf
-UART_BOOT:= $(TEL_PATH)/components/uart_boot_TB01_v0.3.bin
+UART_BOOT:= $(TEL_PATH)/components/TB-02_boot_V0.5.bin
 
 SIZEDUMMY := sizedummy
 
@@ -122,19 +122,19 @@ pre-build:
 	-@echo ' '
 
 flash:
-	python3 $(TEL_PATH)/make/Telink_Tools.py -p $(DOWNLOAD_PORT) burn $(BIN_FILE) 
+	python $(TEL_PATH)/make/Telink_Tools.py -p $(DOWNLOAD_PORT) burn $(BIN_FILE) 
 
 erase_fw:
-	python3 $(TEL_PATH)/make/Telink_Tools.py -p $(DOWNLOAD_PORT) erase_flash 0x4000 44
+	python $(TEL_PATH)/make/Telink_Tools.py -p $(DOWNLOAD_PORT) erase_flash 0x4000 44
 
 erase_all:
-	python3 $(TEL_PATH)/make/Telink_Tools.py -p $(DOWNLOAD_PORT) erase_flash 0x4000 124
+	python $(TEL_PATH)/make/Telink_Tools.py -p $(DOWNLOAD_PORT) erase_flash 0x4000 124
 
 monitor:
-	python3 $(TEL_PATH)/make/monitor.py --port $(DOWNLOAD_PORT) --baud 115200 $(ELF_FILE)
+	python $(TEL_PATH)/make/monitor.py --port $(DOWNLOAD_PORT) --baud 115200 $(ELF_FILE)
 
 combine_fw:
-	python3 $(TEL_PATH)/make/tl_firmware_tools.py combine $(UART_BOOT) $(BIN_FILE) $(OUT_PATH)/$(PROJECT_NAME)_with_boot.bin
+	python $(TEL_PATH)/make/tl_firmware_tools.py combine $(UART_BOOT) $(BIN_FILE) $(OUT_PATH)/$(PROJECT_NAME)_with_boot.bin
 
 secondary-outputs: $(BIN_FILE) $(LST_FILE) $(SIZEDUMMY)
 

@@ -1,3 +1,4 @@
+#coding=utf-8
 import argparse
 import base64
 import binascii
@@ -121,7 +122,20 @@ def telink_flash_erase(_port, addr, len_t):
     if (addr + (len_t * 0x1000) ) > 0x80000: return False
 
     uart_write(_port, struct.pack('>BHIB', CMD_ERASE_FLASH, 5, addr, len_t))
-    time.sleep(len_t * 0.03) #wait erase complect
+
+    sys.stdout.write('\033[?25l-')
+    sys.stdout.flush()
+    for i in range((int)(len_t/3)):
+        time.sleep(0.1) #wait erase complect
+        m = i%4
+        if m == 1: sys.stdout.write("\b\\")
+        elif m == 2: sys.stdout.write("\b|")
+        elif m == 3: sys.stdout.write("\b/")
+        elif m == 0: sys.stdout.write("\b-")
+        sys.stdout.flush()
+
+    sys.stdout.write("\b \b\033[?25h");sys.stdout.flush()
+
     return wait_result(_port, RES_ERASE_FLASH)
 
 def connect_chip(_port):
@@ -161,7 +175,7 @@ def erase_flash(_port, args):
     flash_addr = int(args.addr, 0)
     sector_len = int(args.len,  0)
 
-    print("Erase Flash at " + args.addr + " " + args.len + " Sector ... ... ", end="")
+    sys.stdout.write("Erase Flash at " + args.addr + " " + args.len + " Sector ... ... ")
     sys.stdout.flush()
 
     if telink_flash_erase(_port,flash_addr, sector_len):
@@ -177,7 +191,7 @@ def read_flash(_port, args):
         print("\033[3;31mThe MAX read len is 255 bytes!\033[0m")
         return
 
-    print("Read Flash from " + args.addr + " " + args.len + " Bytes ... ... ", end="")
+    sys.stdout.write("Read Flash from " + args.addr + " " + args.len + " Bytes ... ... ")
     sys.stdout.flush()
 
     data_c = 0
@@ -189,7 +203,7 @@ def read_flash(_port, args):
             if data_c == 16: 
                 print("%02x " %b)
                 data_c = 0
-            else :print("%02x " %b, end='')
+            else :sys.stdout.write("%02x " %b);sys.stdout.flush()
         print('')
     else:
         print("\033[3;31mFail!\033[0m")
@@ -198,7 +212,7 @@ def burn(_port, args):
     #  Try to change Baud to 921600 
     sys.stdout.flush()
     change_baud(_port)
-    print("Start erase Flash at 0x4000 len 176 KB . ", end="")
+    sys.stdout.write("Start erase Flash at 0x4000 len 176 KB ... ")
     sys.stdout.flush()
 
     if not telink_flash_erase(_port, 0x4000, 44):
@@ -228,7 +242,7 @@ def burn(_port, args):
         firmware_addr += len(data)
 
         percent = (int)(firmware_addr *100 / firmware_size)
-        sys.stdout.write("\r" + str(percent) + "% [\033[3;32m{0}\033[0m{1}]".format(">"*(int)((percent/100)*bar_len),"="*(bar_len-(int)((percent/100)*bar_len))))
+        sys.stdout.write("\r" + str(percent) + "% [\033[3;32m{0}\033[0m{1}]".format(">"*(int)(percent*bar_len/100),"="*(bar_len-(int)(percent*bar_len/100))))
         sys.stdout.flush()
 
     print("")
@@ -246,7 +260,7 @@ def burn_triad(_port, args):
     print("Your MAC =   " + args.MAC )
     print("Your Secret =   " + args.Secret )
 
-    print("Erase Flash at 0x78000 len 4 KB ... ... ",end="")
+    sys.stdout.write("Erase Flash at 0x78000 len 4 KB ... ... ")
     sys.stdout.flush()
 
     if not telink_flash_erase(_port, 0x78000, 1):
@@ -254,7 +268,7 @@ def burn_triad(_port, args):
         return
     print("\033[3;32mOK!\033[0m")
 
-    print("Burn Triad to 0x78000 ... ... ",end="")
+    sys.stdout.write("Burn Triad to 0x78000 ... ... ")
     sys.stdout.flush()
 
     if not telink_flash_write(_port, 0x78000, data):
@@ -308,13 +322,14 @@ def main(custom_commandline=None):
 
     operation_func = globals()[args.operation]
 
-    # if PYTHON2:
-    #     # This function is depreciated in Python3
-    #     operation_args = inspect.getargspec(operation_func).args
-    # else:
-    #     operation_args = inspect.getfullargspec(operation_func).args
+    if PYTHON2:
+        # This function is depreciated in Python3
+        operation_args = inspect.getargspec(operation_func).args
+    else:
+        operation_args = inspect.getfullargspec(operation_func).args
 
-    print("Open " + args.port + " ... ... ", end="")
+    sys.stdout.write("Open " + args.port + " ... ... ")
+    sys.stdout.flush()
     
     try:
         _port = serial.serial_for_url(args.port)
@@ -323,7 +338,8 @@ def main(custom_commandline=None):
         print("\033[3;31mFail!\033[0m")
         return
 
-    print('\033[3;32mSuccess!\033[0m\r\nConnect Board ... ... ', end="")
+    sys.stdout.write('\033[3;32mSuccess!\033[0m\r\nConnect Board ... ...')
+    sys.stdout.flush()
 
     if connect_chip(_port):
         print("\033[3;32mSuccess!\033[0m")
@@ -336,10 +352,10 @@ def main(custom_commandline=None):
 def _main():
     print("-- EN: Please download the Ai-Thinker Bootload Firware to the board first . \033[3;32m\033[0m") #921600
     print("-- CH: 烧录前务必确定烧录安信可科技制作的bootload固件（官方正品出厂前已烧录）。\033[3;32m\033[0m") #921600
-    # print("\033[3;32m \033[0m") #921600
-    #try:
+    
+    # try:
     main()
-    # except FatalError as e:
+    # except Exception as e:
     #     print('\nA fatal error occurred: %s' % e)
     #     sys.exit(2)
 
