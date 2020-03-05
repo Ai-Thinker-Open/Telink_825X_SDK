@@ -1,54 +1,22 @@
 # Telink TLSR825X Software Development Kit
 --------------------------------------------------
-Telink 泰凌 TLSR825X 蓝牙芯片软件开发套件
+Telink 泰凌 TLSR825X 蓝牙芯片软件开发套件,推荐配合安信可开发板一起使用。
 
 # 使用方法
 ---------------------------------------------------
 
-### 获取TC32编译工具链(文档仅适用于Linux 64Bit系统)
->目前仅测试了linux系统，Mac OS及Windows系统仅提供了编译工具变，需自行设置环境变量
+### 搭建开发环境
 
->Mac OS版本工具链下载地址 ```http://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32-mac.zip```
+>Windows系统开发环境搭建： [Window开发环境搭建](https://github.com/Ai-Thinker-Open/Telink_825X_SDK/start_windows.md)
 
->Windows 版本工具链下载地址 ```http://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32_win.rar```
+> Linux 64Bit 系统开发环境搭建：[Linux开发环境搭建](https://github.com/Ai-Thinker-Open/Telink_825X_SDK/start_linux.md)
 
-linux版本获取编译工具链
+> mac OS 开发环境搭建：[mac OS 开发环境搭建](https://github.com/Ai-Thinker-Open/Telink_825X_SDK/start_macos.md)
 
-    wget http://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32_gcc_v2.0.tar.bz2
-
-解压到opt文件夹 *(也可解压到其他文件夹)*
-
-    sudo tar -xvjf　tc32_gcc_v2.0.tar.bz2　-C /opt/
-
-添加工具链到环境变量(以解压到/opt为例)
-
-    export PATH=$PATH:/opt/tc32/bin
-
-测试是否搭建成功
-
-    tc32-elf-gcc -v
-
-如果搭建成功将打印如下信息:
-
-    Using built-in specs.
-    COLLECT_GCC=tc32-elf-gcc
-    COLLECT_LTO_WRAPPER=/opt/tc32/lib/gcc/tc32-elf/4.5.1.tc32-elf-1.5/lto-wrapper
-    Target: tc32-elf
-    Configured with: ../../gcc-4.5.1/configure --program-prefix=tc32-elf- --target=tc32-elf --prefix=/opt/tc32 --enable-languages=c --libexecdir=/opt/tc32/lib --with-gnu-as --with-gnu-ld --without-headers --disable-decimal-float --disable-nls --disable-mathvec --with-pkgversion='Telink TC32 version 2.0 build' --without-docdir --without-fp --without-tls --disable-shared --disable-threads --disable-libffi --disable-libquadmath --disable-libstdcxx-pch --disable-libmudflap --disable-libgomp --disable-libssp -v --without-docdir --enable-soft-float --with-newlib --with-gcc --with-gnu- --with-gmp=/opt/tc32/addontools --with-mpc=/opt/tc32/addontools --with-mpfr=/opt/tc32/addontools
-    Thread model: single
-    gcc version 4.5.1.tc32-elf-1.5 (Telink TC32 version 2.0 build) 
-
-### 安装Python3及其依赖
-烧录工具采用python语言编写，所以须确保你的电脑安装了python3运行环境及所需依赖包pyserial
-
-python3请自行安装，一下指令用于安装prserial
-
-    pip install pyserial
 
 ### 获取SDK
 
     git clone https://github.com/Ai-Thinker-Open/Telink_825X_SDK.git
-
 
 ### 编译demo 程序
 进入blink示例工程目录
@@ -70,25 +38,60 @@ python3请自行安装，一下指令用于安装prserial
 
 ### 烧录程序到芯片
 
-安信可自主开发了串口烧录工具，无需官方烧录器即可使用，前提是要先将安信可bootloader烧录到模块中。
+> 芯片本身并不支持串口烧录，只能使用芯片原厂提供的烧录器烧录。安信可自主开发了串口烧录工具，无需官方烧录器即可使用，前提是要先将安信可bootloader烧录到模块中，一般安信可出厂的模块及开发板都烧录了支持串口烧录的bootloader。
 
-串口烧录接线方式如下：
+- 如果你使用安信可TB系列开发板进行开发，直接将开发板通过USB连接到计算机即可。
+- 如果你使用安信可TB系列模块进行开发，需要准备一个支持硬件流控的USB转串口模块，并按照下表将蓝牙模块与USB转串口连接起来，然后将USB转串口插入计算机。
+
+#### 串口烧录接线方式如下：
 
 |串口|模块|
 |----|---|
 |VCC|3V3|
 |GND|GND|
 |TX|RX|
-RX|TX|
+|RX|TX|
 |RTS|RST|
 |DTR|SWS|
 
-注意：SWS为boot选择引脚，为低电平进入下载模式，为高电平进入运行模式
+备注：SWS为boot选择引脚，为低电平进入下载模式，为高电平进入运行模式
 
+#### 设置串口号
+
+将开发板或模块通过USB连接计算机后，查看下其对应的串口号：
+
+- Windows系统在设备管理器中可以查看串口，windows串口号以```com```开头
+- Linux系统通过```ls /dev/ttyUSB*```指令查看产口号，linux系统串口号以```/dev/ttyUSB```开头
+- mac OS 系统通过```ls /dev/cu*```指令查看产口号，linux系统串口号以```/dev/cu.```开头
+
+
+查看到串口号，修改blink目录下的makefile文件，将 ```DOWNLOAD_PORT``` 的值修改成开发板的串口号，比如在windows系统下，查看到开发板对应的串口号是```com3```，则修改后的 ```DOWNLOAD_PORT := com3```
+
+#### 烧录固件
+成功设置串口号后，可使用如下指令烧录固件到芯片中：
 烧录指令：
 
     make flash
-其他指令：
+
+#### 烧录常见错误
+----------------------------------------------
+    Telink_Tools.py v0.3 dev 
+    Open /dev/ttyUSB0 ... ... Fail!
+若出现以上错误，请检查串口号是否设置正确，串口是否被占用。
+
+----------------------------------------------
+
+### 运行固件
+
+按下开发板上的RST键可复位开发板，开始运行刚烧录的固件。
+
+如果你使用单模块进行开发或者想要打开串口，可使用```make monitor```指令。
+
+### 其他指令：
 
     make erase_fw//擦除固件
-    make monitor //打开串口监控
+    make erase_all//擦除整片Flash(除boot外)
+
+## 其他资料
+
+[API 参考手册](https://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tb/Telink%20Kite%20BLE%20SDK%20Developer%20Handbook.pdf)
