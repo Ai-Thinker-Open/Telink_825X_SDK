@@ -152,7 +152,7 @@ void app_uart_loop(void)
 			switch (rec_buff.data[0])
 			{
 				case CMD_VRSN: //读取版本号
-					sprintf(buff, BOOT_VERSION"\r\n");
+					sprintf(buff, BOOT_VERSION BOARD_NAME "\r\n");
 					break;
 
 				case CMD_WRTE: //写Flash
