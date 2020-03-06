@@ -39,7 +39,7 @@ except ImportError:
           "Check the README for installation instructions." % (sys.VERSION, sys.executable))
     raise
 
-__version__ = "0.3 dev"
+__version__ = "0.4 dev"
 
 PYTHON2 = sys.version_info[0] < 3  # True if on pre-Python 3
 
@@ -100,8 +100,14 @@ def wait_result(_port, res, time_out = 200):
 def telink_flash_write(_port, addr, data):
     cmd_len = len(data) + 5
     if(addr < 0x4000): addr += 0x2C000
-    uart_write(_port, struct.pack('>BHIB', CMD_WRITE_FLASH, cmd_len, addr, 0) + data)
-    return wait_result(_port, RES_WRITE_FLASH)
+
+    error_c = 3
+    while error_c > 0:
+        uart_write(_port, struct.pack('>BHIB', CMD_WRITE_FLASH, cmd_len, addr, 0) + data)
+        if wait_result(_port, RES_WRITE_FLASH): return True
+        time.sleep(0.5)
+        error_c-=1
+    return False
 
 def telink_flash_read(_port, addr, len_b):
     uart_write(_port, struct.pack('>BHIB', CMD_READ_FLASH, 5, addr,len_b))
