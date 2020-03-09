@@ -53,7 +53,7 @@ def  combine(args) :
 
     df.seek(0, 0)
     file_content = df.read()
-    crc32_result = zlib.crc32(file_content)
+    crc32_result = zlib.crc32(file_content) & 0xffffffff
 
     df.seek(0, 2)
     df.write(struct.pack('>I', crc32_result))
