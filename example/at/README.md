@@ -1,3 +1,11 @@
+<!--
+ * @Author: your name
+ * @Date: 2020-03-31 19:46:54
+ * @LastEditTime: 2020-03-31 20:40:54
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: /Telink_825X_SDK/example/at/README.md
+ -->
 # AT 固件设计原理
 
 ## AT 设计原理
@@ -16,6 +24,27 @@
 |PC5为低电平|AT模式|AT模式
 
 备注：如果用户不需要使用透传模式，将PC5通过电阻下拉即可。AT模式下可通过AT+SEND指令发送数据。
+
+## 板子选择
+
+- 默认是 TB02模块开发板，如下选择对应您的板子模块
+
+```
+#define _MODULE_TB_02_DEV_BOARD_
+
+#if defined _MODULE_TB_01_ //TB01模块
+#define CONTROL_GPIO GPIO_PC5
+#define UART_RX_PIN UART_RX_PB0
+#elif defined _MODULE_TB_02_ //TB02模块
+#define CONTROL_GPIO GPIO_PB7
+#define UART_RX_PIN UART_RX_PA0
+#elif defined _MODULE_TB_02_DEV_BOARD_ //TB02开发板
+#define CONTROL_GPIO GPIO_PA0
+#define UART_RX_PIN UART_RX_PB7
+#else
+#error "please set module type"
+#endif
+```
 
 
 ## AT 指令格式
