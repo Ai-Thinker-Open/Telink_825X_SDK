@@ -1,8 +1,8 @@
 <!--
  * @Author: your name
  * @Date: 2020-03-31 19:46:54
- * @LastEditTime: 2020-03-31 20:40:54
- * @LastEditors: your name
+ * @LastEditTime: 2020-03-31 20:43:50
+ * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /Telink_825X_SDK/example/at/README.md
  -->
@@ -27,7 +27,7 @@
 
 ## 板子选择
 
-- 默认是 TB02模块开发板，如下选择对应您的板子模块
+- 默认是 TB02模块开发板，如下选择对应您的板子模块，代码在  ```app_config.h```
 
 ```
 #define _MODULE_TB_02_DEV_BOARD_
@@ -45,7 +45,6 @@
 #error "please set module type"
 #endif
 ```
-
 
 ## AT 指令格式
 AT 指令可以细分为四种格式类型：
