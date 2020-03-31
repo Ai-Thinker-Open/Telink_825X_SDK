@@ -28,8 +28,6 @@ extern "C"
 {
 #endif
 
-// #define AT_VERSION "V0.41"
-
 #define _MODULE_TB_02_DEV_BOARD_
 
 #if defined _MODULE_TB_01_ //TB01模块
