@@ -33,6 +33,7 @@ static unsigned char atCmd_ATE1(char *pbuf,  int mode, int lenth)
 
 static unsigned char atCmd_GMR(char *pbuf,  int mode, int lenth)
 {
+	
 	at_print("\r\n+VER:"AT_VERSION);
 	return 0;
 }
