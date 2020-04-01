@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-03-31 19:46:54
- * @LastEditTime: 2020-03-31 20:43:50
+ * @LastEditTime: 2020-04-01 16:53:37
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /Telink_825X_SDK/example/at/README.md
@@ -77,3 +77,13 @@ AT 指令可以细分为四种格式类型：
 |14|AT+DISCON|断开连接
 |15|AT+SEND|AT模式下发送数据|
 |16|+DATA|AT模式下收到数据|
+
+## FAQ 
+
+- 1/ 修改蓝牙广播默认名字，默认是“Ai-Thinker”
+
+```
+const u8 tbl_scanRsp [] = {
+		 0x0B, 0x09, 'A', 'i', '-', 'T', 'h', 'i', 'n', 'k', 'e', 'r',
+	};
+```
