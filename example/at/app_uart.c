@@ -107,13 +107,15 @@ void app_uart_init(AT_BAUD baud)
 
 	irq_enable();
 }
-
+/* GPIO初始化
+CONTROL_GPIO默认上拉，如果需要关闭透传模式，将其下拉即可。 */
 void my_gpio_init(void)
 {
 	
 	gpio_set_func(CONTROL_GPIO, AS_GPIO);
 
 	gpio_setup_up_down_resistor(CONTROL_GPIO, PM_PIN_PULLUP_10K);
+//	gpio_setup_up_down_resistor(CONTROL_GPIO, PM_PIN_PULLDOWN_100K);//关闭透传模式
 
 	gpio_set_output_en(CONTROL_GPIO, 0);//enable output
 
@@ -168,7 +170,7 @@ void at_print_array(char * data, u32 len)
 
 void at_send(char * data, u32 len)
 {
-	while(len > UART_DATA_LEN)
+	while(len > UART_DATA_LEN)//如果超过串口传输最大长度
 	{
 		memcpy(trans_buff.data, data,  UART_DATA_LEN);
 		data += UART_DATA_LEN;
@@ -176,7 +178,7 @@ void at_send(char * data, u32 len)
 
 		trans_buff.dma_len = UART_DATA_LEN;
 
-		uart_dma_send((unsigned char*)&trans_buff);
+		uart_dma_send((unsigned char*)&trans_buff);//输出到串口
 		trans_buff.dma_len = 0;
 		WaitMs(10);
 		
@@ -186,7 +188,7 @@ void at_send(char * data, u32 len)
 	{
 		memcpy(trans_buff.data, data,  len);
 		trans_buff.dma_len = len;
-		uart_dma_send((unsigned char*)&trans_buff);
+		uart_dma_send((unsigned char*)&trans_buff);//输出到串口
 		trans_buff.dma_len = 0;
 		WaitMs(2);
 	}
@@ -225,7 +227,7 @@ void app_uart_irq_proc(void)
 
 u8 * data = NULL;
 uart_data_t * p = NULL;
-
+//用户层UART循环收发数据
 void app_uart_loop()
 {
 	if(data = my_fifo_get(&uart_rx_fifo)) //从fifo中获取数据
