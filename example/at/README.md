@@ -21,8 +21,8 @@
 
 ||未与手机建立连接|已与手机建立连接
 |---|---|---|
-|<del>PC5<del>CONTROL_GPIO为高电平|AT模式|透传模式
-|<del>PC5<del>CONTROL_GPIO为低电平|AT模式|AT模式
+|<del>PC5</del>CONTROL_GPIO为高电平|AT模式|透传模式
+|<del>PC5</del>CONTROL_GPIO为低电平|AT模式|AT模式
 
 备注：如果用户不需要使用透传模式，将PC5通过电阻下拉即可。AT模式下可通过AT+SEND指令发送数据。
 
