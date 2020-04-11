@@ -83,9 +83,8 @@ AT 指令可以细分为四种格式类型：
 
 - 1/ 修改蓝牙广播默认名字，默认是“Ai-Thinker”
 
-//app.c
-
 ```
+//app.c
 const u8 tbl_scanRsp [] = {
 		 0x0B, 0x09, 'A', 'i', '-', 'T', 'h', 'i', 'n', 'k', 'e', 'r',
 	};
