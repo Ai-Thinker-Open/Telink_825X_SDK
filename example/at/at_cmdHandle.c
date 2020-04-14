@@ -10,41 +10,44 @@
 #define STORAGE_BAUD 2
 #define STORAGE_ATE  3
 #define STORAGE_MODE 4
-
+//外部变量
 extern u8 baud_buf[];
 extern  const u8 tbl_scanRsp[];
 extern u8 my_scanRsp[32];
 extern u8 ATE;
 extern u8  mac_public[6];
 
+/* 经过data_process_parse函数分析执行下列函数 */
+
+//关回显 回显即 将指令重复并输出结果
 static unsigned char atCmd_ATE0(char *pbuf,  int mode, int lenth)
 {
 	ATE = 0;
 	tinyFlash_Write(STORAGE_ATE, &ATE, 1);
 	return 0;
 }
-
+//开回显 回显即 将指令重复并输出结果
 static unsigned char atCmd_ATE1(char *pbuf,  int mode, int lenth)
 {
 	ATE = 1;
 	tinyFlash_Write(STORAGE_ATE, &ATE, 1);
 	return 0;
 }
-
+//获取AT版本
 static unsigned char atCmd_GMR(char *pbuf,  int mode, int lenth)
 {
 	
 	at_print("\r\n+VER:"AT_VERSION);
 	return 0;
 }
-
+//重启
 static unsigned char atCmd_Reset(char *pbuf,  int mode, int lenth)
 {
 	at_print("\r\nOK\r\n");
 	start_reboot();
 	return 0;
 }
-
+//睡眠
 static unsigned char atCmd_Sleep(char *pbuf,  int mode, int lenth)
 {
 	at_print("\r\nOK\r\n");
@@ -55,7 +58,7 @@ static unsigned char atCmd_Sleep(char *pbuf,  int mode, int lenth)
 	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_PAD, 0);  //deepsleep
 	return 0;
 }
-
+//恢复出厂设置并重启
 static unsigned char atCmd_Restore(char *pbuf,  int mode, int lenth)
 {
 	tinyFlash_Format();
@@ -63,7 +66,7 @@ static unsigned char atCmd_Restore(char *pbuf,  int mode, int lenth)
 	start_reboot();
 	return 0;
 }
-
+//波特率
 static unsigned char atCmd_Baud(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
@@ -90,7 +93,7 @@ static unsigned char atCmd_Baud(char *pbuf,  int mode, int lenth)
 	}
 	return 1;
 }
-
+//名字
 static unsigned char atCmd_Name(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
@@ -120,7 +123,7 @@ static unsigned char atCmd_Name(char *pbuf,  int mode, int lenth)
 	}
 	return 1;
 }
-
+//MAC地址
 static unsigned char atCmd_Mac(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
@@ -277,7 +280,7 @@ static unsigned char Scan_Stop()
 	blt_soft_timer_delete(Scan_Stop);
 	blc_ll_setScanEnable (BLC_SCAN_DISABLE, DUP_FILTER_DISABLE);
 }
-
+//蓝牙主机模式开始扫描
 static unsigned char atCmd_Scan(char *pbuf,  int mode, int lenth)
 {
 	//set scan parameter and scan enable
@@ -288,12 +291,12 @@ static unsigned char atCmd_Scan(char *pbuf,  int mode, int lenth)
 
 	return 0xff;
 }
-
+//主动断开连接
 static unsigned char atCmd_Disconnect(char *pbuf,  int mode, int lenth)
 {
 	return 0;
 }
-
+//主动连接
 static unsigned char atCmd_Connect(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_SET)
@@ -436,7 +439,7 @@ static unsigned char atCmd_Board_test(char *pbuf,  int mode, int lenth)
 		gpio_write(GPIO_PB5,1); WaitMs(200);
 	}
 }
-
+//读写命令
 _at_command_t gAtCmdTb_writeRead[] =
 { 
 	{ "BAUD", 	atCmd_Baud,	"Set/Read BT Baud\r\n"},
@@ -448,7 +451,7 @@ _at_command_t gAtCmdTb_writeRead[] =
 	{ "CONNECT",atCmd_Connect,"Connect other slave device\r\n"},
 	{0, 	0,	0}
 };
-
+//控制命令
 _at_command_t gAtCmdTb_exe[] =
 {
 	{ "1", 		atCmd_ATE1, "ATE1\r\n"},  //ATE1
