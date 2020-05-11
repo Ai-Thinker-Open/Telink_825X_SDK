@@ -85,8 +85,7 @@ _attribute_data_retention_	own_addr_type_t 	app_own_address_type = OWN_ADDRESS_P
 //////////////////////////////////////////////////////////////////////////////
 //	 Adv Packet, Response Packet
 //////////////////////////////////////////////////////////////////////////////
-const u8 tbl_advData[] = {
-	// 0x05, 0x09, 'k', 'H', 'I', 'D',			//此项设定蓝牙名称，如果注释掉则使用默认的Ai-Thinker
+u8 tbl_advData[32] = {
 	 0x02, 0x01, 0x05, 							// BLE limited discoverable mode and BR/EDR not supported
 	 0x03, 0x19, 0x80, 0x01, 					// 384, Generic Remote Control, Generic category
 	 0x05, 0x02, 0x12, 0x18, 0x0F, 0x18,		// incomplete list of service class UUIDs (0x1812, 0x180F)
@@ -258,8 +257,20 @@ void ble_slave_init_normal(void)
 
 
 ///////////////////// USER application initialization ///////////////////
-	bls_ll_setAdvData( (u8 *)tbl_advData, sizeof(tbl_advData) );
-
+	my_scanRsp_len = 16;
+	if( tinyFlash_Read(5, tbl_advData + 15, &my_scanRsp_len) == 0) //用户自定义厂商数据
+	{
+	}
+	else //默认厂商数据为MAC地址，解决iOS设备无法获取MAC地址的问题
+	{
+		my_scanRsp_len = 6;
+		memcpy(tbl_advData + 15, mac_public, 6);
+	}
+	tbl_advData[13] = my_scanRsp_len + 1;
+	tbl_advData[14] = 0xff;
+	bls_ll_setAdvData((u8 *)tbl_advData, 15 + my_scanRsp_len);
+	
+	my_scanRsp_len = 30;
 	if( tinyFlash_Read(1, my_scanRsp + 2, &my_scanRsp_len) == 0) //用户自定义蓝牙名称
 	{
 		my_scanRsp_len += 2;

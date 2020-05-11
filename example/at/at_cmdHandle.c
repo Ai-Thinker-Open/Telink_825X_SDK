@@ -10,6 +10,7 @@
 #define STORAGE_BAUD 2
 #define STORAGE_ATE  3
 #define STORAGE_MODE 4
+#define STORAGE_ADVDATA 5
 //外部变量
 extern u8 baud_buf[];
 extern  const u8 tbl_scanRsp[];
@@ -385,6 +386,25 @@ static unsigned char atCmd_Send(char *pbuf,  int mode, int lenth)
 	}
 }
 
+extern u8 tbl_advData[];
+static unsigned char atCmd_Advdata(char *pbuf,  int mode, int lenth)
+{
+	if(mode == AT_CMD_MODE_READ)
+	{
+		memset(at_print_buf, 0, 64);
+		at_print("\r\n+ADVDATA:");
+		memcpy(at_print_buf, tbl_advData+15, tbl_advData[13] -1);
+		at_print((char*)at_print_buf);
+		return 0;
+	}
+	else if(mode == AT_CMD_MODE_SET)
+	{
+		if(lenth > 16) return 2;
+		tinyFlash_Write(STORAGE_ADVDATA, pbuf, lenth);
+		return 0;
+	}
+}
+
 //用于测试开发板
 static unsigned char atCmd_Board_test(char *pbuf,  int mode, int lenth)
 {
@@ -449,6 +469,7 @@ _at_command_t gAtCmdTb_writeRead[] =
 	{ "MODE", 	atCmd_Mode, "Set/Read BT Mode\r\n"},
 	{ "SEND", 	atCmd_Send, "Send data to phone\r\n"},
 	{ "CONNECT",atCmd_Connect,"Connect other slave device\r\n"},
+	{ "ADVDATA",atCmd_Advdata,"Set/Read Adv Data\r\n"},
 	{0, 	0,	0}
 };
 //控制命令
