@@ -57,7 +57,7 @@ u8 addrExtCmp(const u8 * pAddr1, const u8 * pAddr2)
 }
 
 
-
+extern int ev_buf_free(u8* arg);
 void freeTimerEvent(void **arg)
 {
     if ( *arg != NULL ) {

@@ -76,7 +76,6 @@ int  blt_soft_timer_sort(void)
 //user add timer
 int blt_soft_timer_add(blt_timer_callback_t func, u32 interval_us)
 {
-	int i;
 	u32 now = clock_time();
 
 	if(blt_timer.currentNum >= MAX_TIMER_NUM){  //timer full
@@ -108,6 +107,7 @@ int  blt_soft_timer_delete_by_index(u8 index)
 	}
 
 	blt_timer.currentNum --;
+	return 0;
 }
 
 

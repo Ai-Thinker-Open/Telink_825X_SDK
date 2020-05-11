@@ -90,7 +90,7 @@ static const  u8 my_OtaName[] 						= {'O', 'T', 'A'};
 
 ////////////////////// SPP ////////////////////////////////////
 static const u8 TelinkSppServiceUUID[16]	      	    = TELINK_SPP_UUID_SERVICE;
-static const u8 TelinkSppDataServer2ClientUUID[16]      = TELINK_SPP_DATA_SERVER2CLIENT;
+static const u8 TelinkSppDataServer2ClientUUID[16]      = {TELINK_SPP_DATA_SERVER2CLIENT};
 static const u8 TelinkSppDataClient2ServerUUID[16]      = TELINK_SPP_DATA_CLIENT2SERVER;
 
 

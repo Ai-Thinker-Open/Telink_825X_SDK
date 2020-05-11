@@ -51,7 +51,7 @@
 #include <stdarg.h>
 
 #include "drivers.h"
-
+extern int putchar(int c);
 static void printchar(char **str, int c) {
 	if (str) {
 		**str = c;

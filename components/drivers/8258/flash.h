@@ -88,7 +88,7 @@ _attribute_ram_code_ void flash_write_page(unsigned long addr, unsigned long len
 _attribute_ram_code_ void flash_read_page(unsigned long addr, unsigned long len, unsigned char *buf);
 
 /* according to your appliaction */
-#if 0
+#if 1
 /**
  * @brief     This function serves to erase a page(256 bytes).
  * @param[in] addr - the start address of the page needs to erase.
