@@ -166,9 +166,15 @@ _attribute_ram_code_ void user_set_rf_power (u8 e, u8 *p, int n)
 	rf_set_power_level_index (MY_RF_POWER_INDEX);
 }
 
+static unsigned char print_connect_state()
+{
+	blt_soft_timer_delete(print_connect_state);
+	at_print((unsigned char *)"\r\n+BLE_CONNECTED\r\n");
+}
+
 void task_connect (u8 e, u8 *p, int n)
 {
-//	bls_l2cap_requestConnParamUpdate (8, 8, 19, 200);   // 200mS
+//  bls_l2cap_requestConnParamUpdate (8, 8, 19, 200);   // 200mS
 	bls_l2cap_requestConnParamUpdate (8, 8, 99, 400);   // 1 S
 //	bls_l2cap_requestConnParamUpdate (8, 8, 149, 600);  // 1.5 S
 //	bls_l2cap_requestConnParamUpdate (8, 8, 199, 800);  // 2 S
@@ -179,7 +185,8 @@ void task_connect (u8 e, u8 *p, int n)
 
 	device_in_connection_state = 1;//
 
-	at_print((unsigned char *)"\r\n+BLE_CONNECTED\r\n");
+	//at_print((unsigned char *)"\r\n+BLE_CONNECTED\r\n");
+	blt_soft_timer_add(&print_connect_state, 100000);
 
 	interval_update_tick = clock_time() | 1; //none zero
 }
@@ -254,7 +261,6 @@ void ble_slave_init_normal(void)
 #else
 	blc_smp_setSecurityLevel(No_Security);
 #endif
-
 
 ///////////////////// USER application initialization ///////////////////
 	my_scanRsp_len = 16;

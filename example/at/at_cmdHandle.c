@@ -230,10 +230,11 @@ static unsigned char atCmd_Read(char *pbuf,  int mode, int lenth)
 	}
 }
 
-extern u32 device_in_connection_state;
+extern u32 device_in_connection_state; //从机状态下已被连接标志位
+extern u32 cur_conn_device_hdl;//主机状态下已建立连接标志位
 static unsigned char atCmd_State(char *pbuf,  int mode, int lenth)
 {
-	if(device_in_connection_state ==0)
+	if((device_in_connection_state ==0) && (cur_conn_device_hdl == 0))
 	{
 		at_print("\r\n+STATE:0");
 	}
@@ -284,13 +285,17 @@ static unsigned char Scan_Stop()
 //蓝牙主机模式开始扫描
 static unsigned char atCmd_Scan(char *pbuf,  int mode, int lenth)
 {
-	//set scan parameter and scan enable
-	blc_ll_setScanParameter(SCAN_TYPE_ACTIVE, SCAN_INTERVAL_100MS, SCAN_INTERVAL_100MS, OWN_ADDRESS_PUBLIC, SCAN_FP_ALLOW_ADV_ANY);
-	blc_ll_setScanEnable (BLC_SCAN_ENABLE, DUP_FILTER_ENABLE);
+	if(device_mode == 1)
+	{
+		//set scan parameter and scan enable
+		blc_ll_setScanParameter(SCAN_TYPE_ACTIVE, SCAN_INTERVAL_100MS, SCAN_INTERVAL_100MS, OWN_ADDRESS_PUBLIC, SCAN_FP_ALLOW_ADV_ANY);
+		blc_ll_setScanEnable (BLC_SCAN_ENABLE, DUP_FILTER_ENABLE);
 
-	blt_soft_timer_add(&Scan_Stop, 3000000);//3S
+		blt_soft_timer_add(&Scan_Stop, 3000000);//3S
+		return 0xff;
+	}
 
-	return 0xff;
+	return 2;
 }
 //主动断开连接
 static unsigned char atCmd_Disconnect(char *pbuf,  int mode, int lenth)
@@ -300,7 +305,8 @@ static unsigned char atCmd_Disconnect(char *pbuf,  int mode, int lenth)
 //主动连接
 static unsigned char atCmd_Connect(char *pbuf,  int mode, int lenth)
 {
-	if(mode == AT_CMD_MODE_SET)
+	//只有是主机模式且未建立连接才能发起连接
+	if((mode == AT_CMD_MODE_SET) && (device_mode == 1) && (cur_conn_device_hdl == 0))
 	{
 		if(lenth != 12) 
 		{
@@ -333,6 +339,18 @@ static unsigned char atCmd_Connect(char *pbuf,  int mode, int lenth)
 			}
 		}
 
+		pbuf[6] = pbuf[0];
+		pbuf[0] = pbuf[5];
+		pbuf[5] = pbuf[6];
+
+		pbuf[6] = pbuf[1];
+		pbuf[1] = pbuf[4];
+		pbuf[4] = pbuf[6];
+
+		pbuf[6] = pbuf[2];
+		pbuf[2] = pbuf[3];
+		pbuf[3] = pbuf[6];
+
 		blc_ll_createConnection( SCAN_INTERVAL_100MS, SCAN_INTERVAL_100MS, INITIATE_FP_ADV_SPECIFY,  \
 								0, pbuf, BLE_ADDR_PUBLIC, \
 								CONN_INTERVAL_10MS, CONN_INTERVAL_10MS, 0, CONN_TIMEOUT_4S, \
@@ -351,7 +369,7 @@ static unsigned char atCmd_Connect(char *pbuf,  int mode, int lenth)
 //AT+SEND=46,4646464646546\r\n
 static unsigned char atCmd_Send(char *pbuf,  int mode, int lenth)
 {
-	if(device_in_connection_state == 0) //如果蓝牙未连接,或者未开启Notify
+	if((device_in_connection_state == 0) && (cur_conn_device_hdl == 0)) //如果蓝牙未连接,或者未开启Notify
 	{
 		return 2;
 	}
@@ -376,8 +394,14 @@ static unsigned char atCmd_Send(char *pbuf,  int mode, int lenth)
 			return 2;
 		}
 
-		bls_att_pushNotifyData(SPP_SERVER_TO_CLIENT_DP_H, (u8*)data, len); //release
-
+		if(device_mode == 0)//当前为从机模式，发送数据到主机
+		{
+			bls_att_pushNotifyData(SPP_SERVER_TO_CLIENT_DP_H, (u8*)data, len);
+		}
+		else //当前为主机模式，发送数据到从机
+		{
+			blc_gatt_pushWriteComand(cur_conn_device_hdl, SPP_SERVER_TO_CLIENT_DP_H,  (u8*)data, len);
+		}
 		return 0;
 	}
 	else

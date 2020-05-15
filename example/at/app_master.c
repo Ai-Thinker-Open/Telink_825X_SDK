@@ -60,7 +60,7 @@ static u32 mtuExchange_started_flg;
 static u32 dongle_pairing_enable;
 static u32 dongle_unpair_enable;
 static u32 final_MTU_size = 23;
-static u32 cur_conn_device_hdl; //conn_handle
+u32 cur_conn_device_hdl; //conn_handle
 
 
 int app_l2cap_handler (u16 conn_handle, u8 *raw_pkt)
@@ -180,7 +180,7 @@ int controller_event_callback (u32 h, u8 *p, int n)
 			else{
 			}
 
-			u_sprintf(at_print_buf,"----- terminate rsn: 0x%x -----\n", pd->reason);
+			u_sprintf(at_print_buf,"ERROR(%x)\r\n", pd->reason);
 			at_print(at_print_buf);
 			
 			connect_event_occurTick = 0;
@@ -211,7 +211,7 @@ int controller_event_callback (u32 h, u8 *p, int n)
 
 				if (pCon->status == BLE_SUCCESS)	// status OK
 				{
-					at_print("----- connected -----\n");
+					at_print("OK\r\n");
 					cur_conn_device_hdl = pCon->handle;   //mark conn handle, in fact this equals to BLM_CONN_HANDLE
 					connect_event_occurTick = clock_time()|1;
 				}
@@ -223,7 +223,7 @@ int controller_event_callback (u32 h, u8 *p, int n)
 				event_adv_report_t *pa = (event_adv_report_t *)p;
 				s8 rssi = pa->data[pa->len];
 
-				u_sprintf((char*)at_print_buf, "+ADV:%d,%02X%02X%02X%02X%02X%02X,", rssi,pa->mac[0],pa->mac[1],pa->mac[2],pa->mac[3],pa->mac[4],pa->mac[5]);
+				u_sprintf((char*)at_print_buf, "+ADV:%d,%02X%02X%02X%02X%02X%02X,", rssi,pa->mac[5],pa->mac[4],pa->mac[3],pa->mac[2],pa->mac[1],pa->mac[0]);
 				at_print(at_print_buf);
 
 				at_print_array(pa->data, pa->len);
@@ -304,7 +304,7 @@ void ble_master_mainloop(void)
 
 	if(blc_ll_getCurrentState() == BLS_LINK_STATE_CONN)//still in connection state
 	{  
-		at_print("BLS_LINK_STATE_CONN\r\n");
+		//at_print("BLS_LINK_STATE_CONN\r\n");
 		//blm_ll_updateConnection (cur_conn_device_hdl, host_update_conn_min, host_update_conn_min, host_update_conn_latency,  host_update_conn_timeout, 0, 0 );
 	}
 }
