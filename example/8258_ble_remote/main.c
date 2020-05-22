@@ -24,7 +24,7 @@
 #include "drivers.h"
 #include "stack/ble/ble.h"
 #include "vendor/common/blt_fw_sign.h"
-#include "../../vendor/common/user_config.h"
+#include "vendor/common/user_config.h"
 
 
 

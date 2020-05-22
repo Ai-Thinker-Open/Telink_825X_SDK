@@ -27,9 +27,9 @@
 
 #include "application/keyboard/keyboard.h"
 #include "application/usbstd/usbkeycode.h"
-#include "../common/tl_audio.h"
-#include "../common/blt_led.h"
-#include "../common/blt_soft_timer.h"
+#include "vendor/common/tl_audio.h"
+#include "vendor/common/blt_led.h"
+#include "vendor/common/blt_soft_timer.h"
 
 #include "rc_ir.h"
 #include "battery_check.h"

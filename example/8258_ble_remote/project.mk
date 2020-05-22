@@ -11,7 +11,7 @@ $(OUT_PATH)/app_phytest.o \
 $(OUT_PATH)/app_ui.o \
 $(OUT_PATH)/battery_check.o \
 $(OUT_PATH)/main.o \
-$(OUT_PATH)/rc_ir.0
+$(OUT_PATH)/rc_ir.o
 
 
 # Each subdirectory must supply rules for building sources it contributes

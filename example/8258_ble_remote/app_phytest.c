@@ -23,7 +23,7 @@
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
-#include "../common/blt_led.h"
+#include "vendor/common/blt_led.h"
 
 #if (BLE_PHYTEST_MODE != PHYTEST_MODE_DISABLE )
 
