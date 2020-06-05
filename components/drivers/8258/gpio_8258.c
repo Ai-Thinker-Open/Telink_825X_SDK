@@ -673,7 +673,7 @@ static void gpio_set_mux(GPIO_PinTypeDef pin, GPIO_FuncTypeDef func)
 			//0x5ae[7:6]
 			//0. PWM1_N
 			//1. I2S_SDI
-			//2. UART_TX��7816��
+			//2. UART_TX
 			mask = (unsigned char)~(BIT(7)|BIT(6));
 			if(func == AS_PWM1_N){
 
@@ -797,7 +797,7 @@ void gpio_set_func(GPIO_PinTypeDef pin, GPIO_FuncTypeDef func)
 	}
 }
 
-//???????bug????GPIO?UART??????GPIO??
+//上面那条函数有bug，在设置GPIO为UART的时候会引起GPIO抖动
 void gpio_set_func2(GPIO_PinTypeDef pin, GPIO_FuncTypeDef func)
 {
 	unsigned char	bit = pin & 0xff;
