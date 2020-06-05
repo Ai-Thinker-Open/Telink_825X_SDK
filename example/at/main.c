@@ -102,13 +102,9 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 		{
 			ble_slave_init_normal();
 		}
+		//WaitMs(10);
+		at_print("    \r\nAi-Thinker BlE AT "AT_VERSION"\r\n+READY\r\n");
 	}
-	//WaitMs(10);
-	at_print("    \r\nAi-Thinker BlE AT "AT_VERSION"\r\n+READY\r\n");
-
-	
-
-	WaitMs(10);
 
 	irq_enable();
 
