@@ -796,6 +796,22 @@ void gpio_set_func(GPIO_PinTypeDef pin, GPIO_FuncTypeDef func)
 		gpio_set_mux(pin, func);
 	}
 }
+
+//???????bug????GPIO?UART??????GPIO??
+void gpio_set_func2(GPIO_PinTypeDef pin, GPIO_FuncTypeDef func)
+{
+	unsigned char	bit = pin & 0xff;
+	if(func == AS_GPIO){
+		BM_SET(reg_gpio_func(pin), bit);
+		return;
+	}else
+	{
+		gpio_set_mux(pin, func);
+		BM_CLR(reg_gpio_func(pin), bit);
+	}
+}
+
+
 /**
  * @brief      This function set the input function of a pin.
  * @param[in]  pin - the pin needs to set the input function

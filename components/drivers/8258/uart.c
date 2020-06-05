@@ -518,7 +518,7 @@ void uart_gpio_set(UART_TxPinDef tx_pin,UART_RxPinDef rx_pin)
 	gpio_setup_up_down_resistor(rx_pin, PM_PIN_PULLUP_10K);  //must  for stability and prevent from current leakage
 
 
-	gpio_set_func(tx_pin,AS_UART); // set tx pin
+	gpio_set_func2(tx_pin,AS_UART); // set tx pin
 	gpio_set_func(rx_pin,AS_UART); // set rx pin
 
 
