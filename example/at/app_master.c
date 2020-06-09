@@ -97,15 +97,21 @@ int app_l2cap_handler (u16 conn_handle, u8 *raw_pkt)
 		}
 		else if(pAtt->opcode == ATT_OP_HANDLE_VALUE_NOTI)  //slave handle notify
 		{
-			if(attHandle == SPP_HANDLE_DATA_S2C)
-			{
-				u8 len = pAtt->l2capLen - 3;
-				if(len > 0)
-				{
-					printf("RF_RX len: %d\ns2c:notify data: %d\n", pAtt->rf_len, len);
-					array_printf(pAtt->dat, len);
-				}
-			}
+			// if(attHandle == SPP_HANDLE_DATA_S2C)
+			// {
+			// 	u8 len = pAtt->l2capLen - 3;
+			// 	if(len > 0)
+			// 	{
+			// 		printf("RF_RX len: %d\ns2c:notify data: %d\n", pAtt->rf_len, len);
+			// 		array_printf(pAtt->dat, len);
+			// 	}
+			// }
+			u8 len = pAtt->l2capLen - 3;
+
+			u_sprintf((char*)at_print_buf, "+DATA:%d,", len);
+			at_print(at_print_buf);
+			at_send(pAtt->dat, len);
+			at_print("\r\n");	
 		}
 	}
 	else if(ptrL2cap->chanId == L2CAP_CID_SIG_CHANNEL)  //signal
@@ -180,7 +186,7 @@ int controller_event_callback (u32 h, u8 *p, int n)
 			else{
 			}
 
-			u_sprintf(at_print_buf,"ERROR(%x)\r\n", pd->reason);
+			u_sprintf(at_print_buf,"+DISCONNECT(%x)\r\n", pd->reason);
 			at_print(at_print_buf);
 			
 			connect_event_occurTick = 0;
