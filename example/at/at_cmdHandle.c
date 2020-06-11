@@ -12,6 +12,8 @@
 #define STORAGE_MODE 4
 #define STORAGE_ADVDATA 5
 #define STORAGE_LSLEEP 6
+#define STORAGE_ADVINTV 7
+
 //外部变量
 extern u8 baud_buf[];
 extern  const u8 tbl_scanRsp[];
@@ -465,6 +467,30 @@ static unsigned char atCmd_Advdata(char *pbuf,  int mode, int lenth)
 	}
 }
 
+//设置关闭间隙
+extern u16 user_adv_interval_ms;
+static unsigned char atCmd_Advintv(char *pbuf,  int mode, int lenth)
+{
+	if(mode == AT_CMD_MODE_READ)
+	{
+		memset(at_print_buf, 0, 64);
+		u_sprintf((char*)at_print_buf, "\r\n+ADVINTV:%d", user_adv_interval_ms);
+		at_print((char*)at_print_buf);
+		return 0;
+	}
+	else if(mode == AT_CMD_MODE_SET)
+	{
+		u16 interval = 0;
+		while(lenth--)
+		{
+			interval = interval * 10 + (pbuf[0] - '0');
+			pbuf++;
+		}
+		tinyFlash_Write(STORAGE_ADVINTV, &interval, 2);
+		return 0;
+	}
+}
+
 //用于测试开发板
 static unsigned char atCmd_Board_test(char *pbuf,  int mode, int lenth)
 {
@@ -530,6 +556,7 @@ _at_command_t gAtCmdTb_writeRead[] =
 	{ "SEND", 	atCmd_Send, "Send data to phone\r\n"},
 	{ "CONNECT",atCmd_Connect,"Connect other slave device\r\n"},
 	{ "ADVDATA",atCmd_Advdata,"Set/Read Adv Data\r\n"},
+	{ "ADVINTV",atCmd_Advintv,"Set/Read Adv interval\r\n"},
 	{ "LSLEEP", atCmd_LSleep, "Sleep\r\n"},
 	{0, 	0,	0}
 };

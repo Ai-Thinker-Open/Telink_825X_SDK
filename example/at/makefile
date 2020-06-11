@@ -15,7 +15,7 @@
 #########################################################################################
 
 # Select Chip  
-TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258 -DAT_VERSION=\"V0.5.0\"
+TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258 -DAT_VERSION=\"V0.6.0\"
 # Select link lib
 LIBS :=  -llt_8258
 

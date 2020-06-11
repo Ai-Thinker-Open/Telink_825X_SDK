@@ -99,6 +99,8 @@ static u8 my_scanRsp_len = 30;
 u8 my_scanRsp[32] = { 0 };
 u8 lsleep_model = 0;
 
+u16 user_adv_interval_ms = 0;//用户自己设置的蓝牙广播间隙
+
 _attribute_data_retention_	u32 device_in_connection_state = 0;
 
 _attribute_data_retention_	u32 advertise_begin_tick;
@@ -332,12 +334,27 @@ void ble_slave_init_normal(void)
 	else   //set indirect adv
 #endif
 	{
-		u8 status = bls_ll_setAdvParam(  MY_ADV_INTERVAL_MIN, MY_ADV_INTERVAL_MAX,
-										 ADV_TYPE_CONNECTABLE_UNDIRECTED, app_own_address_type,
-										 0,  NULL,
-										 MY_APP_ADV_CHANNEL,
-										 ADV_FP_NONE);
-		if(status != BLE_SUCCESS) { write_reg8(0x40002, 0x11); 	while(1); }  //debug: adv setting err
+		my_scanRsp_len = 2;
+		if(tinyFlash_Read(7, &user_adv_interval_ms, &my_scanRsp_len) == 0) //读取用户是否设置广播间隙
+		{
+			u16  interval = user_adv_interval_ms * 16; //广播间隙的值等于 mS数 * 1.6
+			interval = (u16)(interval / 10);
+			u8 status = bls_ll_setAdvParam( interval, interval,
+											ADV_TYPE_CONNECTABLE_UNDIRECTED, app_own_address_type,
+											0,  NULL,
+											MY_APP_ADV_CHANNEL,
+											ADV_FP_NONE);
+			if(status != BLE_SUCCESS) { write_reg8(0x40002, 0x11); 	while(1); }  //debug: adv setting err
+		}
+		else //使用默认广播间隙
+		{
+			u8 status = bls_ll_setAdvParam(  MY_ADV_INTERVAL_MIN, MY_ADV_INTERVAL_MAX,
+											ADV_TYPE_CONNECTABLE_UNDIRECTED, app_own_address_type,
+											0,  NULL,
+											MY_APP_ADV_CHANNEL,
+											ADV_FP_NONE);
+			if(status != BLE_SUCCESS) { write_reg8(0x40002, 0x11); 	while(1); }  //debug: adv setting err
+		}
 	}
 
 	bls_ll_setAdvEnable(1);  //adv enable
