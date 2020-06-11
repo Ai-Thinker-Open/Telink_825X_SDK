@@ -11,6 +11,7 @@
 #define STORAGE_ATE  3
 #define STORAGE_MODE 4
 #define STORAGE_ADVDATA 5
+#define STORAGE_LSLEEP 6
 //外部变量
 extern u8 baud_buf[];
 extern  const u8 tbl_scanRsp[];
@@ -58,6 +59,41 @@ static unsigned char atCmd_Sleep(char *pbuf,  int mode, int lenth)
 
 	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_PAD, 0);  //deepsleep
 	return 0;
+}
+
+//轻度睡眠，保持蓝牙及连接功能
+extern u8 lsleep_model;
+static unsigned char  atCmd_LSleep(char *pbuf,  int mode, int lenth)
+{
+	if(mode == AT_CMD_MODE_READ)
+	{
+		if(lsleep_model == 1)
+		{
+			at_print("\r\n+LSLEEP:1");
+		}
+		else
+		{
+			at_print("\r\n+LSLEEP:0");
+		}
+		return 0;
+	}
+	else if(mode == AT_CMD_MODE_SET)
+	{
+		if(pbuf[0] == '1') lsleep_model = 1;
+		else lsleep_model = 0;
+		tinyFlash_Write(STORAGE_LSLEEP, &lsleep_model, 1);
+		return 0;
+	}
+	else if(mode == AT_CMD_MODE_EXECUTION)
+	{
+		lsleep_enable();
+		at_print("\r\nOK\r\n");
+		return 0xFF;
+	}
+	else
+	{
+		return 2;
+	}
 }
 //恢复出厂设置并重启
 static unsigned char atCmd_Restore(char *pbuf,  int mode, int lenth)
@@ -494,6 +530,7 @@ _at_command_t gAtCmdTb_writeRead[] =
 	{ "SEND", 	atCmd_Send, "Send data to phone\r\n"},
 	{ "CONNECT",atCmd_Connect,"Connect other slave device\r\n"},
 	{ "ADVDATA",atCmd_Advdata,"Set/Read Adv Data\r\n"},
+	{ "LSLEEP", atCmd_LSleep, "Sleep\r\n"},
 	{0, 	0,	0}
 };
 //控制命令
@@ -504,6 +541,7 @@ _at_command_t gAtCmdTb_exe[] =
 	{ "GMR", 	atCmd_GMR,  "GMR\r\n"}, 
 	{ "RST", 	atCmd_Reset, "RESET\r\n"}, 
 	{ "SLEEP", 	atCmd_Sleep, "Sleep\r\n"}, 	
+	{ "LSLEEP", atCmd_LSleep, "Sleep\r\n"},
 	{ "RESTORE",atCmd_Restore,"RESTORE\r\n"},
 	{ "STATE",  atCmd_State,  "State\r\n"},
 	{ "SCAN",   atCmd_Scan,   "Scan\r\n"},

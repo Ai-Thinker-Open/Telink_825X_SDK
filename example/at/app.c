@@ -95,8 +95,9 @@ const u8 tbl_scanRsp [] = {
 		 0x0B, 0x09, 'A', 'i', '-', 'T', 'h', 'i', 'n', 'k', 'e', 'r',
 	};//此项设定蓝牙被扫描回应的名称，在微信小程序体现为localName，更多请看SKD103页
 
-u8 my_scanRsp_len = 30;
+static u8 my_scanRsp_len = 30;
 u8 my_scanRsp[32] = { 0 };
+u8 lsleep_model = 0;
 
 _attribute_data_retention_	u32 device_in_connection_state = 0;
 
@@ -108,13 +109,6 @@ _attribute_data_retention_	u8	sendTerminate_before_enterDeep = 0;
 
 _attribute_data_retention_	u32	latest_user_event_tick;
 
-
-_attribute_ram_code_ void  ble_remote_set_sleep_wakeup (u8 e, u8 *p, int n)
-{
-	if( blc_ll_getCurrentState() == BLS_LINK_STATE_CONN && ((u32)(bls_pm_getSystemWakeupTick() - clock_time())) > 80 * CLOCK_16M_SYS_TIMER_CLK_1MS){  //suspend time > 30ms.add gpio wakeup
-		bls_pm_setWakeupSource(PM_WAKEUP_PAD);  //gpio pad wakeup suspend/deepsleep
-	}
-}
 
 
 void app_switch_to_indirect_adv(u8 e, u8 *p, int n)
@@ -202,20 +196,41 @@ void task_conn_update_done (u8 e, u8 *p, int n)
 	//at_print("+UpData_Done\r\n");
 }
 
-
-_attribute_ram_code_
-void blt_pm_proc(void)
+_attribute_ram_code_ void  ble_sleep_enter (u8 e, u8 *p, int n)
 {
+	bls_pm_setWakeupSource(PM_WAKEUP_PAD);  //gpio pad wakeup suspend/deepsleep
+}
 
-#if(BLE_APP_PM_ENABLE)
+_attribute_ram_code_ void  ble_suspend_wakeup (u8 e, u8 *p, int n)
+{
+	//at_print("ble_suspend_wakeup\r\n");
+}
 
+_attribute_ram_code_ void  ble_suspend_gpio_wakeup (u8 e, u8 *p, int n)
+{
+	bls_pm_setSuspendMask(0);  //退出低功耗
+	at_print("\r\n+WAKEUP\r\n");
+}
 
+void lsleep_enable()
+{
 	#if (PM_DEEPSLEEP_RETENTION_ENABLE)
-		bls_pm_setSuspendMask (SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
+		bls_pm_setSuspendMask (SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV );
+		blc_pm_setDeepsleepRetentionThreshold(95, 95);
+		blc_pm_setDeepsleepRetentionEarlyWakeupTiming(TEST_CONN_CURRENT_ENABLE ? 220 : 240);
+		blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K); //default use 16k deep retention
 	#else
 		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN);
 	#endif
-#endif
+
+	bls_app_registerEventCallback (BLT_EV_FLAG_SUSPEND_ENTER, &ble_sleep_enter);
+	bls_app_registerEventCallback (BLT_EV_FLAG_SUSPEND_EXIT, &ble_suspend_wakeup);
+
+	bls_app_registerEventCallback (BLT_EV_FLAG_GPIO_EARLY_WAKEUP, &ble_suspend_gpio_wakeup);
+
+	gpio_setup_up_down_resistor(UART_RX_PIN, PM_PIN_PULLDOWN_100K);
+	cpu_set_gpio_wakeup (UART_RX_PIN, Level_Low, 1); 
+	bls_pm_setWakeupSource(PM_WAKEUP_PAD); 
 }
 
 u8  mac_public[6];
@@ -343,16 +358,13 @@ void ble_slave_init_normal(void)
 #if(BLE_APP_PM_ENABLE)
 	blc_ll_initPowerManagement_module();
 
-	#if (PM_DEEPSLEEP_RETENTION_ENABLE)
-		bls_pm_setSuspendMask (SUSPEND_ADV | DEEPSLEEP_RETENTION_ADV | SUSPEND_CONN | DEEPSLEEP_RETENTION_CONN);
-		blc_pm_setDeepsleepRetentionThreshold(95, 95);
-		blc_pm_setDeepsleepRetentionEarlyWakeupTiming(TEST_CONN_CURRENT_ENABLE ? 220 : 240);
-		//blc_pm_setDeepsleepRetentionType(DEEPSLEEP_MODE_RET_SRAM_LOW32K); //default use 16k deep retention
-	#else
-		bls_pm_setSuspendMask (SUSPEND_ADV | SUSPEND_CONN);
-	#endif
+	my_scanRsp_len = 1;
+	tinyFlash_Read(6, &lsleep_model, &my_scanRsp_len); //读取用户是否设置开机即进入睡眠
 
-	bls_app_registerEventCallback (BLT_EV_FLAG_SUSPEND_ENTER, &ble_remote_set_sleep_wakeup);
+	if(lsleep_model) //开机即进入睡眠模式
+	{
+		lsleep_enable();
+	}
 #else
 	bls_pm_setSuspendMask (SUSPEND_DISABLE);
 #endif
@@ -364,24 +376,19 @@ void ble_slave_init_normal(void)
 
 _attribute_ram_code_ void ble_slave_init_deepRetn(void)
 {
-#if (PM_DEEPSLEEP_RETENTION_ENABLE)
-
 	blc_ll_initBasicMCU();   //mandatory
 	rf_set_power_level_index (MY_RF_POWER_INDEX);
 
 	blc_ll_recoverDeepRetention();
 
-	DBG_CHN0_HIGH;    //debug
+	if(pm_is_deepPadWakeup()) //如果是GPIO唤醒
+	{
+		bls_pm_setSuspendMask(0);  //退出低功耗
+	}
+	else
+	{
+		cpu_set_gpio_wakeup (UART_RX_PIN, Level_Low, 1); 
+	}
 
 	irq_enable();
-
-	// #if (!TEST_CONN_CURRENT_ENABLE)
-	// 	/////////// keyboard gpio wakeup init ////////
-	// 	u32 pin[] = KB_DRIVE_PINS;
-	// 	for (int i=0; i<(sizeof (pin)/sizeof(*pin)); i++)
-	// 	{
-	// 		cpu_set_gpio_wakeup (pin[i], Level_High,1);  //drive pin pad high wakeup deepsleep
-	// 	}
-	// #endif
-#endif
 }
