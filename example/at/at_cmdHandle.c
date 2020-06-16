@@ -484,6 +484,33 @@ static unsigned char atCmd_Advintv(char *pbuf,  int mode, int lenth)
 	}
 }
 
+//设置发射功率
+extern u8 user_rf_power_index;
+void user_set_rf_power (u8 e, u8 *p, int n);
+static unsigned char atCmd_rf_power(char *pbuf,  int mode, int lenth)
+{
+	if(mode == AT_CMD_MODE_READ)
+	{
+		memset(at_print_buf, 0, 64);
+		u_sprintf((char*)at_print_buf, "\r\n+RFPWR:%d", user_rf_power_index);
+		at_print((char*)at_print_buf);
+		return 0;
+	}
+	else if(mode == AT_CMD_MODE_SET)
+	{
+		u8 tmp =  (pbuf[0] - '0');
+
+		if(tmp < 10)
+		{
+			user_rf_power_index = tmp;
+			user_set_rf_power(0,0,0);
+			tinyFlash_Write(STORAGE_RFPWR, &user_rf_power_index, 1);
+			return 0;
+		}
+		return 2;
+	}
+}
+
 //用于测试开发板
 static unsigned char atCmd_Board_test(char *pbuf,  int mode, int lenth)
 {
@@ -551,6 +578,7 @@ _at_command_t gAtCmdTb_writeRead[] =
 	{ "ADVDATA",atCmd_Advdata,"Set/Read Adv Data\r\n"},
 	{ "ADVINTV",atCmd_Advintv,"Set/Read Adv interval\r\n"},
 	{ "LSLEEP", atCmd_LSleep, "Sleep\r\n"},
+	{ "RFPWR",  atCmd_rf_power, "Sleep\r\n"},
 	{0, 	0,	0}
 };
 //控制命令

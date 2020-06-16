@@ -42,8 +42,21 @@
 #define 	MY_ADV_INTERVAL_MAX					ADV_INTERVAL_35MS
 
 
-#define		MY_RF_POWER_INDEX					RF_POWER_P10p46dBm //RF_POWER_P3p01dBm
+#define		MY_RF_POWER_INDEX					4 //默认发射功率
 
+const u8 my_rf_power_array[10] = //发射功率梯度列表
+{
+	RF_POWER_P0p04dBm,//0.04dBm
+	RF_POWER_P1p73dBm,//1.93dBm
+	RF_POWER_P3p01dBm,//3.01dBm
+	RF_POWER_P3p94dBm,//3.94dBm
+	RF_POWER_P5p13dBm,//5.13dBm
+	RF_POWER_P6p14dBm,//6.14dBm
+	RF_POWER_P7p02dBm,//7.02dBm
+	RF_POWER_P8p13dBm,//8.13dBm
+	RF_POWER_P9p24dBm,//9.24dBm
+	RF_POWER_P10p46dBm,//10.46dBm
+};
 
 #define		BLE_DEVICE_ADDRESS_TYPE 			BLE_DEVICE_ADDRESS_PUBLIC
 
@@ -112,7 +125,7 @@ _attribute_data_retention_	u8	sendTerminate_before_enterDeep = 0;
 
 _attribute_data_retention_	u32	latest_user_event_tick;
 
-
+_attribute_data_retention_	u8	user_rf_power_index = 0;
 
 void app_switch_to_indirect_adv(u8 e, u8 *p, int n)
 {
@@ -160,7 +173,7 @@ void ble_remote_terminate(u8 e,u8 *p, int n) //*p is terminate reason
 
 _attribute_ram_code_ void user_set_rf_power (u8 e, u8 *p, int n)
 {
-	rf_set_power_level_index (MY_RF_POWER_INDEX);
+	rf_set_power_level_index (my_rf_power_array[user_rf_power_index]);
 }
 
 static unsigned char print_connect_state()
@@ -206,6 +219,7 @@ _attribute_ram_code_ void  ble_sleep_enter (u8 e, u8 *p, int n)
 
 _attribute_ram_code_ void  ble_suspend_wakeup (u8 e, u8 *p, int n)
 {
+	rf_set_power_level_index (my_rf_power_array[user_rf_power_index]);
 	//at_print("ble_suspend_wakeup\r\n");
 }
 
@@ -360,7 +374,16 @@ void ble_slave_init_normal(void)
 
 	bls_ll_setAdvEnable(1);  //adv enable
 
-
+	u8 buff_len = 1;
+	if(tinyFlash_Read(STORAGE_RFPWR, &user_rf_power_index, &buff_len) == 0) //读取用户是否设置发射功率
+	{
+		if(user_rf_power_index > 9 ) user_rf_power_index = MY_RF_POWER_INDEX; //发射功率非法
+	}
+	else
+	{
+		user_rf_power_index = MY_RF_POWER_INDEX; //设为默认发射功率
+	}
+	
 	//set rf power index, user must set it after every suspend wakeup, cause relative setting will be reset in suspend
 	user_set_rf_power(0, 0, 0);
 	bls_app_registerEventCallback (BLT_EV_FLAG_SUSPEND_EXIT, &user_set_rf_power);
@@ -395,7 +418,7 @@ void ble_slave_init_normal(void)
 _attribute_ram_code_ void ble_slave_init_deepRetn(void)
 {
 	blc_ll_initBasicMCU();   //mandatory
-	rf_set_power_level_index (MY_RF_POWER_INDEX);
+	rf_set_power_level_index (my_rf_power_array[user_rf_power_index]);
 
 	blc_ll_recoverDeepRetention();
 
