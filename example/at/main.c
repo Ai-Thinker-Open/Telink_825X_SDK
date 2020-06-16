@@ -26,6 +26,7 @@
 #include "vendor/common/user_config.h"
 #include "vendor/common/blt_soft_timer.h"
 #include "tinyFlash/tinyFlash.h"
+#include "tinyFlash_Index.h"
 
 extern void user_init_normal();
 extern void user_init_deepRetn();
@@ -68,7 +69,7 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 
 	u8 len =1;
 
-	tinyFlash_Read(2, baud_buf, &len); //读取波特率
+	tinyFlash_Read(STORAGE_BAUD, baud_buf, &len); //读取波特率
 
 	app_uart_init(baud_buf[0]);  //初始化串口
 
@@ -76,10 +77,10 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 
 	blt_soft_timer_init(); // 初始化定时器
 
-	tinyFlash_Read(3, &ATE, &len); //读取ATE
+	tinyFlash_Read(STORAGE_ATE, &ATE, &len); //读取ATE
 	
 	len =1;
-	tinyFlash_Read(4, &device_mode, &len); //读取ATE
+	tinyFlash_Read(STORAGE_MODE, &device_mode, &len); //读取ATE
 
 	if( deepRetWakeUp )
 	{

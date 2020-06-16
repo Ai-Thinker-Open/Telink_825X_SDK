@@ -29,6 +29,7 @@
 #include "application/keyboard/keyboard.h"
 #include "application/usbstd/usbkeycode.h"
 #include "tinyFlash/tinyFlash.h"
+#include "tinyFlash_Index.h"
 
 #define 	ADV_IDLE_ENTER_DEEP_TIME			60  //60 s
 #define 	CONN_IDLE_ENTER_DEEP_TIME			60  //60 s
@@ -280,7 +281,7 @@ void ble_slave_init_normal(void)
 
 ///////////////////// USER application initialization ///////////////////
 	my_scanRsp_len = 16;
-	if( tinyFlash_Read(5, tbl_advData + 15, &my_scanRsp_len) == 0) //用户自定义厂商数据
+	if( tinyFlash_Read(STORAGE_ADVDATA, tbl_advData + 15, &my_scanRsp_len) == 0) //用户自定义厂商数据
 	{
 	}
 	else //默认厂商数据为MAC地址，解决iOS设备无法获取MAC地址的问题
@@ -293,7 +294,7 @@ void ble_slave_init_normal(void)
 	bls_ll_setAdvData((u8 *)tbl_advData, 15 + my_scanRsp_len);
 	
 	my_scanRsp_len = 30;
-	if( tinyFlash_Read(1, my_scanRsp + 2, &my_scanRsp_len) == 0) //用户自定义蓝牙名称
+	if( tinyFlash_Read(STORAGE_NAME, my_scanRsp + 2, &my_scanRsp_len) == 0) //用户自定义蓝牙名称
 	{
 		my_scanRsp_len += 2;
 		my_scanRsp[0] = my_scanRsp_len - 1;
@@ -335,7 +336,7 @@ void ble_slave_init_normal(void)
 #endif
 	{
 		my_scanRsp_len = 2;
-		if(tinyFlash_Read(7, &user_adv_interval_ms, &my_scanRsp_len) == 0) //读取用户是否设置广播间隙
+		if(tinyFlash_Read(STORAGE_ADVINTV, &user_adv_interval_ms, &my_scanRsp_len) == 0) //读取用户是否设置广播间隙
 		{
 			u16  interval = user_adv_interval_ms * 16; //广播间隙的值等于 mS数 * 1.6
 			interval = (u16)(interval / 10);
@@ -376,7 +377,7 @@ void ble_slave_init_normal(void)
 	blc_ll_initPowerManagement_module();
 
 	my_scanRsp_len = 1;
-	tinyFlash_Read(6, &lsleep_model, &my_scanRsp_len); //读取用户是否设置开机即进入睡眠
+	tinyFlash_Read(STORAGE_LSLEEP, &lsleep_model, &my_scanRsp_len); //读取用户是否设置开机即进入睡眠
 
 	if(lsleep_model) //开机即进入睡眠模式
 	{

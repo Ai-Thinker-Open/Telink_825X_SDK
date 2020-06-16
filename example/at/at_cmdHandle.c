@@ -5,14 +5,7 @@
 #include "stack/ble/ble.h"
 
 #include "tinyFlash/tinyFlash.h"
-
-#define STORAGE_NAME 1
-#define STORAGE_BAUD 2
-#define STORAGE_ATE  3
-#define STORAGE_MODE 4
-#define STORAGE_ADVDATA 5
-#define STORAGE_LSLEEP 6
-#define STORAGE_ADVINTV 7
+#include "tinyFlash_Index.h"
 
 //外部变量
 extern u8 baud_buf[];
