@@ -96,10 +96,10 @@ const u8 tbl_scanRsp [] = {
 	};//此项设定蓝牙被扫描回应的名称，在微信小程序体现为localName，更多请看SKD103页
 
 static u8 my_scanRsp_len = 30;
-u8 my_scanRsp[32] = { 0 };
-u8 lsleep_model = 0;
+_attribute_data_retention_ u8 my_scanRsp[32] = { 0 };
+_attribute_data_retention_ u8 lsleep_model = 0;
 
-u16 user_adv_interval_ms = 0;//用户自己设置的蓝牙广播间隙
+_attribute_data_retention_  u16 user_adv_interval_ms = 0;//用户自己设置的蓝牙广播间隙
 
 _attribute_data_retention_	u32 device_in_connection_state = 0;
 
@@ -235,8 +235,8 @@ void lsleep_enable()
 	bls_pm_setWakeupSource(PM_WAKEUP_PAD); 
 }
 
-u8  mac_public[6];
-u8  mac_random_static[6];
+_attribute_data_retention_ u8  mac_public[6];
+_attribute_data_retention_ u8  mac_random_static[6];
 void ble_slave_init_normal(void)
 {
 	//random number generator must be initiated here( in the beginning of user_init_nromal)

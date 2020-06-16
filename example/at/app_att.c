@@ -150,7 +150,7 @@ static const u8 TelinkSppData_1[19] = {
 	TELINK_SPP_DATA_SERVER2CLIENT
 };
 
-char buff[64] = {0};
+_attribute_data_retention_  char buff[64] = {0};
 
 /* 回调函数
 如果蓝牙收到数据，将传入一个结构体指针并调用此函数处理。

@@ -51,10 +51,10 @@ _attribute_data_retention_	my_fifo_t	uart_rx_fifo = {
 // 												0,
 // 												ble_rx_fifo_b,};
 
-u8 baud_buf[1] = { 6 };
-u8 ATE = 0;
+_attribute_data_retention_  u8 baud_buf[1] = { 6 };
+_attribute_data_retention_  u8 ATE = 0;
 
-char at_print_buf[256] = { 0 };
+_attribute_data_retention_  char at_print_buf[256] = { 0 };
 
 typedef enum {
     AT_BAUD_2400 = 0,
@@ -144,7 +144,7 @@ void at_print(char * str)
 		WaitMs(20);
 	}
 }
-unsigned char hextab[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+const unsigned char hextab[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 void at_print_hexstr(char * data, u32 len)
 {
 	unsigned char buf[128] = { 0 };

@@ -60,7 +60,7 @@ static u32 mtuExchange_started_flg;
 static u32 dongle_pairing_enable;
 static u32 dongle_unpair_enable;
 static u32 final_MTU_size = 23;
-u32 cur_conn_device_hdl; //conn_handle
+_attribute_data_retention_ u32 cur_conn_device_hdl; //conn_handle
 
 
 int app_l2cap_handler (u16 conn_handle, u8 *raw_pkt)
