@@ -81,6 +81,9 @@ AT 指令可以细分为四种格式类型：
 |17|AT+ADVDATA|设置广播数据中的厂商自定义字段内容|
 |18|AT+LSLEEP|设置或进入轻度睡眠|
 |19|AT+RFPWR|设置或读取发射功率|
+|20|AT+IBCNUUID|设置或读取iBeacon UUID|
+|21|AT+MAJOR|设置或读取iBeacon Major|
+|22|AT+MINOR|设置或读取iBeacon Minor|
 
 ## 主机模式
 在主机模式下，模块可与另一个从机模块通信，主要操作如下：
@@ -132,6 +135,50 @@ AT 指令可以细分为四种格式类型：
 	AT+LSLEEP=0
 
 备注：浅睡眠模式在对从机状态下起作用。
+
+## iBeacon 模式
+iBeacon是苹果公司定义的一套特殊的广播格式，主要用于室内定位。
+这个iBeacon广播包共30字节，数据格式如下：
+
+	02 # 第一个AD structure 的字节数（接下来的字节数，这里是2个byte）
+	01 # AD type 的标志
+	1A # 标志的值 0x1A = 000011010  
+	bit 0 (OFF) LE Limited Discoverable Mode
+	bit 1 (ON) LE General Discoverable Mode
+	bit 2 (OFF) BR/EDR Not Supported
+	bit 3 (ON) Simultaneous LE and BR/EDR to Same Device Capable (controller)
+	bit 4 (ON) Simultaneous LE and BR/EDR to Same Device Capable (Host)
+	1A # 第二个AD structure的字节数 （接下来的字节数，这里是26个）
+	FF # AD type 的标志，这里Manufacturer specific data.更多的标志可以到BLE的官网找到：例如0x16 表示servicedata
+	4C 00 # 公司的标志 (0x004C == Apple)
+	02 # Byte 0 of iBeacon advertisement indicator
+	15 # Byte 1 of iBeacon advertisement indicator
+	B9 40 7F 30 F5 F8 46 6E AF F9 25 55 6B 57 FE 6D # iBeacon proximity uuid
+	00 01# major 
+	00 01 # minor 
+	c5 # calibrated Tx Power
+
+
+TB系列模块支持发送iBeacon广播，在iBeacon 模式下，模块可按照iBeacon格式发送广播，主要操作如下：
+
+将模块配置为iBeacon模式：
+
+	AT+MODE=2
+
+设置iBeacon的UUID(16进制格式,共16字节)：
+
+	AT+IBCNUUID=11223344556677889900AABBCCDDEEFF
+
+设置iBeacon的MAJOR(16进制格式,共2字节)：
+
+	AT+MAJOR=1234
+
+设置iBeacon的MINOR(16进制格式,共2字节)：
+
+	AT+MINOR=4567
+
+备注：以上指令均重启后生效，掉电保存。配合设置广播间隙，自动轻度睡眠，可降低iBeacon功耗。
+
 ## FAQ 
 
 - 1/ 修改蓝牙广播默认名字，默认是“Ai-Thinker”

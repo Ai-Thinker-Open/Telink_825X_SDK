@@ -14,6 +14,37 @@ extern u8 my_scanRsp[32];
 extern u8 ATE;
 extern u8  mac_public[6];
 
+int str2hex(char * pbuf, int len)
+{
+	int i = 0;
+	for(i = 0; i < len; i ++)
+	{
+		if(((pbuf[i] >= '0') && (pbuf[i] <= '9')) || ((pbuf[i] >= 'A') && (pbuf[i] <= 'F')))
+		{
+			if((pbuf[i] >= '0') && (pbuf[i] <= '9'))
+			{
+				pbuf[i] -= '0';
+			}
+			else
+			{
+				pbuf[i] -= 'A';
+				pbuf[i] += 0x0A;
+			}
+
+			if(i%2)
+			{
+				pbuf[i/2] = (pbuf[i-1] << 4) | pbuf[i];
+			}
+		}
+		else
+		{
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 /* 经过data_process_parse函数分析执行下列函数 */
 
 //关回显 回显即 将指令重复并输出结果
@@ -174,30 +205,7 @@ static unsigned char atCmd_Mac(char *pbuf,  int mode, int lenth)
 			return 2;
 		}
 
-		for(lenth = 0; lenth < 12; lenth ++)
-		{
-			if(((pbuf[lenth] >= '0') && (pbuf[lenth] <= '9')) || ((pbuf[lenth] >= 'A') && (pbuf[lenth] <= 'F')))
-			{
-				if((pbuf[lenth] >= '0') && (pbuf[lenth] <= '9'))
-				{
-					pbuf[lenth] -= '0';
-				}
-				else
-				{
-					pbuf[lenth] -= 'A';
-					pbuf[lenth] += 0x0A;
-				}
-
-				if(lenth%2)
-				{
-					pbuf[lenth/2] = (pbuf[lenth-1] << 4) | pbuf[lenth];
-				}
-			}
-			else
-			{
-				return 2;
-			}
-		}
+		if(str2hex(pbuf, 12) == -1 ) return 2;
 
 		pbuf[6] = pbuf[0];
 		pbuf[0] = pbuf[5];
@@ -284,12 +292,14 @@ static unsigned char atCmd_Mode(char *pbuf,  int mode, int lenth)
 	{
 		if(device_mode == 1) 
 			at_print("\r\n+MODE:1");
+		else if(device_mode == 2) 
+			at_print("\r\n+MODE:2");
 		else
 			at_print("\r\n+MODE:0");
 	}
 	else if(mode == AT_CMD_MODE_SET)
 	{
-		if((pbuf[0] >= '0') && (pbuf[0] <= '1'))
+		if((pbuf[0] >= '0') && (pbuf[0] <= '2'))
 		{
 			pbuf[0] -= '0';
 			tinyFlash_Write(STORAGE_MODE, (unsigned char*)pbuf, 1);
@@ -345,30 +355,7 @@ static unsigned char atCmd_Connect(char *pbuf,  int mode, int lenth)
 			return 2;
 		}
 
-		for(lenth = 0; lenth < 12; lenth ++)
-		{
-			if(((pbuf[lenth] >= '0') && (pbuf[lenth] <= '9')) || ((pbuf[lenth] >= 'A') && (pbuf[lenth] <= 'F')))
-			{
-				if((pbuf[lenth] >= '0') && (pbuf[lenth] <= '9'))
-				{
-					pbuf[lenth] -= '0';
-				}
-				else
-				{
-					pbuf[lenth] -= 'A';
-					pbuf[lenth] += 0x0A;
-				}
-
-				if(lenth%2)
-				{
-					pbuf[lenth/2] = (pbuf[lenth-1] << 4) | pbuf[lenth];
-				}
-			}
-			else
-			{
-				return 2;
-			}
-		}
+		if(str2hex(pbuf, 12) == -1 ) return 2;
 
 		pbuf[6] = pbuf[0];
 		pbuf[0] = pbuf[5];
@@ -511,6 +498,81 @@ static unsigned char atCmd_rf_power(char *pbuf,  int mode, int lenth)
 	}
 }
 
+ extern u8 ibeacon_data[30];
+//设置或者查询iBeacon UUID
+static unsigned char atCmd_Ibeacon_UUID(char *pbuf,  int mode, int lenth)
+{
+	if(mode == AT_CMD_MODE_READ)
+	{
+		memset(at_print_buf, 0, 64);
+		u_sprintf((char*)at_print_buf, "\r\n+IBCNIIUD:%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", 
+										ibeacon_data[ 9], ibeacon_data[10], ibeacon_data[11],ibeacon_data[12],
+										ibeacon_data[13], ibeacon_data[14], ibeacon_data[15],ibeacon_data[16],
+										ibeacon_data[17], ibeacon_data[18], ibeacon_data[19],ibeacon_data[20],
+										ibeacon_data[21], ibeacon_data[22], ibeacon_data[23],ibeacon_data[24]
+		);
+
+		at_print((char*)at_print_buf);
+		return 0;
+	}
+	else if(mode == AT_CMD_MODE_SET)
+	{
+		if(lenth != 32) return 2;
+
+		if(str2hex(pbuf, 32) == -1 ) return 2;
+
+		memcpy(ibeacon_data+9, pbuf, 16);
+
+		tinyFlash_Write(STORAGE_IUUID, pbuf, 16);
+		return 0;
+	}
+}
+
+//设置或者查询iBeacon Major
+static unsigned char atCmd_Major(char *pbuf,  int mode, int lenth)
+{
+	if(mode == AT_CMD_MODE_READ)
+	{
+		memset(at_print_buf, 0, 64);
+		u_sprintf((char*)at_print_buf, "\r\n+MAJOR:%02X%02X", ibeacon_data[25], ibeacon_data[26]);
+		at_print((char*)at_print_buf);
+		return 0;
+	}
+	else if(mode == AT_CMD_MODE_SET)
+	{
+		if(lenth != 4) return 2;
+
+		if(str2hex(pbuf, 4) == -1 ) return 2;
+
+		memcpy(ibeacon_data+25, pbuf, 2);
+
+		tinyFlash_Write(STORAGE_IMAJOR, &pbuf, 2);
+		return 0;
+	}
+}
+
+//设置后者查询iBeacon Minor
+static unsigned char atCmd_Minor(char *pbuf,  int mode, int lenth)
+{
+	if(mode == AT_CMD_MODE_READ)
+	{
+		memset(at_print_buf, 0, 64);
+		u_sprintf((char*)at_print_buf, "\r\n+MINOR:%02X%02X", ibeacon_data[27],ibeacon_data[28]);
+		at_print((char*)at_print_buf);
+		return 0;
+	}
+	else if(mode == AT_CMD_MODE_SET)
+	{
+		if(lenth != 4) return 2;
+
+		if(str2hex(pbuf, 4) == -1 ) return 2;
+
+		memcpy(ibeacon_data+27, pbuf, 2);
+		tinyFlash_Write(STORAGE_IMONOR, &pbuf, 2);
+		return 0;
+	}
+}
+
 //用于测试开发板
 static unsigned char atCmd_Board_test(char *pbuf,  int mode, int lenth)
 {
@@ -578,7 +640,10 @@ _at_command_t gAtCmdTb_writeRead[] =
 	{ "ADVDATA",atCmd_Advdata,"Set/Read Adv Data\r\n"},
 	{ "ADVINTV",atCmd_Advintv,"Set/Read Adv interval\r\n"},
 	{ "LSLEEP", atCmd_LSleep, "Sleep\r\n"},
-	{ "RFPWR",  atCmd_rf_power, "Sleep\r\n"},
+	{ "RFPWR",  atCmd_rf_power, "RF Power\r\n"},
+	{ "IBCNUUID",atCmd_Ibeacon_UUID, "iBeacon UUID\r\n"},
+	{ "MAJOR",  atCmd_Major, "iBeacon Major\r\n"},
+	{ "MINOR",  atCmd_Minor, "iBeacon Minor\r\n"},
 	{0, 	0,	0}
 };
 //控制命令

@@ -88,7 +88,7 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 		{
 			ble_master_init_deepRetn();
 		}
-		else
+		else //slave or iBeacon
 		{
 			ble_slave_init_deepRetn();
 		}
@@ -99,7 +99,7 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 		{
 			ble_master_init_normal();
 		}
-		else
+		else //slave or iBeacon
 		{
 			ble_slave_init_normal();
 		}

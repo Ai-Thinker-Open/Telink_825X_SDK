@@ -105,6 +105,18 @@ u8 tbl_advData[32] = {
 	 0x05, 0x02, 0x12, 0x18, 0x0F, 0x18,		// incomplete list of service class UUIDs (0x1812, 0x180F)
 };
 
+_attribute_data_retention_  u8 ibeacon_data[30] = 
+{
+	0x02, 0x01, 0x05,
+	0x1A, 0xFF,
+	0x4C, 0x00, //公司的标志 (0x004C == Apple)
+	0x02, 0x15, //iBeacon advertisement indicator
+	0xB9, 0x40, 0x7F, 0x30, 0xF5, 0xF8, 0x46, 0x6E, 0xAF, 0xF9, 0x25, 0x55, 0x6B, 0x57, 0xFE, 0x6D, // iBeacon proximity uuid
+	0x00, 0x01, // major 
+	0x00, 0x01, // minor 
+	0xc5, // calibrated Tx Power
+};
+
 const u8 tbl_scanRsp [] = {
 		 0x0B, 0x09, 'A', 'i', '-', 'T', 'h', 'i', 'n', 'k', 'e', 'r',
 	};//此项设定蓝牙被扫描回应的名称，在微信小程序体现为localName，更多请看SKD103页
@@ -229,6 +241,21 @@ _attribute_ram_code_ void  ble_suspend_gpio_wakeup (u8 e, u8 *p, int n)
 	at_print("\r\n+WAKEUP\r\n");
 }
 
+void iBeacon_init()
+{
+	u8 data_len = 16;
+	tinyFlash_Read(STORAGE_IUUID, ibeacon_data + 9, &data_len);
+
+	data_len = 2;
+	tinyFlash_Read(STORAGE_IMAJOR, ibeacon_data + 25, &data_len);
+
+	data_len = 2;
+	tinyFlash_Read(STORAGE_IMONOR, ibeacon_data + 27, &data_len);
+
+	bls_ll_setAdvData((u8 *)ibeacon_data, 30);
+}
+
+
 void lsleep_enable()
 {
 	#if (PM_DEEPSLEEP_RETENTION_ENABLE)
@@ -321,6 +348,12 @@ void ble_slave_init_normal(void)
 		bls_ll_setScanRspData( (u8 *)tbl_scanRsp, sizeof(tbl_scanRsp));
 	}
 
+	extern u8 device_mode;
+	if(device_mode == 2) //iBeacon 模式
+	{
+		iBeacon_init();
+	}
+
 	////////////////// config adv packet /////////////////////
 #if (BLE_REMOTE_SECURITY_ENABLE)
 	u8 bond_number = blc_smp_param_getCurrentBondingDeviceNumber();  //get bonded device number
@@ -355,7 +388,8 @@ void ble_slave_init_normal(void)
 			u16  interval = user_adv_interval_ms * 16; //广播间隙的值等于 mS数 * 1.6
 			interval = (u16)(interval / 10);
 			u8 status = bls_ll_setAdvParam( interval, interval,
-											ADV_TYPE_CONNECTABLE_UNDIRECTED, app_own_address_type,
+											(device_mode == 2)?ADV_TYPE_NONCONNECTABLE_UNDIRECTED:ADV_TYPE_CONNECTABLE_UNDIRECTED, 
+											app_own_address_type,
 											0,  NULL,
 											MY_APP_ADV_CHANNEL,
 											ADV_FP_NONE);
@@ -364,7 +398,8 @@ void ble_slave_init_normal(void)
 		else //使用默认广播间隙
 		{
 			u8 status = bls_ll_setAdvParam(  MY_ADV_INTERVAL_MIN, MY_ADV_INTERVAL_MAX,
-											ADV_TYPE_CONNECTABLE_UNDIRECTED, app_own_address_type,
+											(device_mode == 2)?ADV_TYPE_NONCONNECTABLE_UNDIRECTED:ADV_TYPE_CONNECTABLE_UNDIRECTED,
+											app_own_address_type,
 											0,  NULL,
 											MY_APP_ADV_CHANNEL,
 											ADV_FP_NONE);
