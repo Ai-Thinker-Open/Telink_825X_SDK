@@ -178,9 +178,9 @@ void at_send(char * data, u32 len)
 
 		trans_buff.dma_len = UART_DATA_LEN;
 
+		while(uart_tx_is_busy());
 		uart_dma_send((unsigned char*)&trans_buff);//输出到串口
 		trans_buff.dma_len = 0;
-		WaitMs(10);
 		
 	}
 
@@ -188,9 +188,9 @@ void at_send(char * data, u32 len)
 	{
 		memcpy(trans_buff.data, data,  len);
 		trans_buff.dma_len = len;
+		while(uart_tx_is_busy());
 		uart_dma_send((unsigned char*)&trans_buff);//输出到串口
 		trans_buff.dma_len = 0;
-		WaitMs(2);
 	}
 }
 
@@ -238,7 +238,10 @@ void app_uart_loop()
 		{
 			if(ATE)
 			{
+				while(uart_tx_is_busy());
 				uart_dma_send((unsigned char*)p);
+				sleep_us(20);
+				while(uart_tx_is_busy());
 			}
 
 			at_data_process((char*)(p->data), p->dma_len);
