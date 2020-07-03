@@ -341,6 +341,15 @@ static unsigned char atCmd_Scan(char *pbuf,  int mode, int lenth)
 //主动断开连接
 static unsigned char atCmd_Disconnect(char *pbuf,  int mode, int lenth)
 {
+	if(device_mode == 0)  //从机模式
+	{
+		bls_ll_terminateConnection(HCI_ERR_REMOTE_USER_TERM_CONN);
+	}
+	else if(device_mode == 1) //主机模式
+	{
+		blm_ll_disconnect(cur_conn_device_hdl, HCI_ERR_REMOTE_USER_TERM_CONN);
+	}
+	
 	return 0;
 }
 //主动连接

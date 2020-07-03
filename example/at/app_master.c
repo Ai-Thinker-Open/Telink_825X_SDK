@@ -229,6 +229,8 @@ int controller_event_callback (u32 h, u8 *p, int n)
 				event_adv_report_t *pa = (event_adv_report_t *)p;
 				s8 rssi = pa->data[pa->len];
 
+				if(rssi == 0) return;
+
 				u_sprintf((char*)at_print_buf, "+ADV:%d,%02X%02X%02X%02X%02X%02X,", rssi,pa->mac[5],pa->mac[4],pa->mac[3],pa->mac[2],pa->mac[1],pa->mac[0]);
 				at_print(at_print_buf);
 
