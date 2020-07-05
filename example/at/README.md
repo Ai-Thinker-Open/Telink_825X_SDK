@@ -15,16 +15,24 @@
 为部分文件添加了注释~
 
 ## AT 模式选择与转换
-如果不对PC5引脚进行处理(悬空)，模块未与手机连接时，将处于AT模式，可响应AT指令。模块与手机连接后即进入透传模式，在透传模式下，MCU通过串口发送给模块的数据，模块会将其原封不动通过蓝牙转发到手机。同样，手机通过蓝牙发送给模块的数据，模块也会原封不动通过串口传送给MCU。
+如果不对控制进行处理(悬空)，模块未与手机连接时，将处于AT模式，可响应AT指令。模块与手机连接后即进入透传模式，在透传模式下，MCU通过串口发送给模块的数据，模块会将其原封不动通过蓝牙转发到手机。同样，手机通过蓝牙发送给模块的数据，模块也会原封不动通过串口传送给MCU。 
+
+
+|   模块  |串口TX|串口RX|控制引脚 |
+|---------|------|------|--------|
+|TB-01    |PB1   |PB0   |PC5     |
+|TB-02+   |PB1   |PA0   |PD2     |
+|TB-02_Kit|PB1   |PB7   |PD2     |
+
 
 模块未与手机连接时，将处于AT模式，可响应AT指令。与手机连接后将进入透传模式，此时不再响应AT指令。如果用户需要在透传模式下发送AT指令，可将PC5引脚拉低，拉低后模块将临时进入AT模式，释放后重新回到透传模式。状态对应如下表：
 
 ||未与手机建立连接|已与手机建立连接
 |---|---|---|
-|<del>PC5</del>CONTROL_GPIO为高电平|AT模式|透传模式
-|<del>PC5</del>CONTROL_GPIO为低电平|AT模式|AT模式
+|CONTROL_GPIO为高电平|AT模式|透传模式
+|CONTROL_GPIO为低电平|AT模式|AT模式
 
-备注：如果用户不需要使用透传模式，将<del>PC5</del>CONTROL_GPIO通过电阻下拉即可。AT模式下可通过AT+SEND指令发送数据。
+备注：如果用户不需要使用透传模式，将CONTROL_GPIO通过电阻下拉即可。AT模式下可通过AT+SEND指令发送数据。
 
 ## 板子选择
 
@@ -37,10 +45,10 @@
 #define CONTROL_GPIO GPIO_PC5
 #define UART_RX_PIN UART_RX_PB0
 #elif defined _MODULE_TB_02_ //TB02模块
-#define CONTROL_GPIO GPIO_PB7
+#define CONTROL_GPIO GPIO_PD2
 #define UART_RX_PIN UART_RX_PA0
 #elif defined _MODULE_TB_02_DEV_BOARD_ //TB02开发板
-#define CONTROL_GPIO GPIO_PA0
+#define CONTROL_GPIO GPIO_PD2
 #define UART_RX_PIN UART_RX_PB7
 #else
 #error "please set module type"

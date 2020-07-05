@@ -34,10 +34,10 @@ extern "C"
 #define CONTROL_GPIO GPIO_PC5
 #define UART_RX_PIN UART_RX_PB0
 #elif defined _MODULE_TB_02_ //TB02模块
-#define CONTROL_GPIO GPIO_PB7
+#define CONTROL_GPIO GPIO_PD2
 #define UART_RX_PIN UART_RX_PA0
 #elif defined _MODULE_TB_02_DEV_BOARD_ //TB02开发板
-#define CONTROL_GPIO GPIO_PA0
+#define CONTROL_GPIO GPIO_PD2
 #define UART_RX_PIN UART_RX_PB7
 #else
 #error "please set module type"
