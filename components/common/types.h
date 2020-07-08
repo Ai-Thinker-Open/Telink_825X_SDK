@@ -66,7 +66,9 @@ typedef	u16	wchar_t;
 #endif
 
 #ifndef WIN32
+#ifndef USE_FREE_RTOS
 typedef u32 size_t;
+#endif
 #endif
 
 #define U32_MAX ((u32)0xffffffff)

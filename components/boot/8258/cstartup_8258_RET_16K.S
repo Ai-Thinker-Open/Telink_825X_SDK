@@ -298,6 +298,14 @@ __irq:
 	tmov		r5, r12
 	tpush		{r0-r5}
 	
+//---------------------
+#ifdef USE_FREE_RTOS
+	tmov		r1, r13
+	tloadr		r2, =StackSave
+	tstorer 	r1, [r2]
+#endif
+//---------------------
+
 	tjl      	irq_handler
 
 	tpop		{r0-r5}

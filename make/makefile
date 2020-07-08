@@ -68,6 +68,11 @@ endif
 -include $(TEL_PATH)/make/vendor_common.mk
 -include $(TEL_PATH)/make/tinyFlash.mk
 
+ifeq ($(USE_FREE_RTOS), 1)
+-include $(TEL_PATH)/make/freertos.mk
+GCC_FLAGS += -DUSE_FREE_RTOS
+endif
+
 #include Project makefile
 -include $(PROJECT_PATH)/project.mk
 

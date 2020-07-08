@@ -22,6 +22,10 @@ else
 	BOOT_FLAG := -DMCU_STARTUP_8258_RET_16K
 endif
 
+ifeq ($(USE_FREE_RTOS), 1)
+	BOOT_FLAG += -DUSE_FREE_RTOS
+endif
+
 OBJS += \
 $(OUT_PATH)/boot/8258/cstartup_8258.o \
 $(OUT_PATH)/boot/8258/cstartup_8258_RET_16K.o \
