@@ -188,6 +188,7 @@ int controller_event_callback (u32 h, u8 *p, int n)
 
 			u_sprintf(at_print_buf,"+DISCONNECT(%x)\r\n", pd->reason);
 			at_print(at_print_buf);
+			gpio_write(CONN_STATE_GPIO, 0);
 			
 			connect_event_occurTick = 0;
 			host_update_conn_param_req = 0; //when disconnect, clear update conn flag
@@ -217,6 +218,7 @@ int controller_event_callback (u32 h, u8 *p, int n)
 
 				if (pCon->status == BLE_SUCCESS)	// status OK
 				{
+					gpio_write(CONN_STATE_GPIO, 1);
 					at_print("OK\r\n");
 					cur_conn_device_hdl = pCon->handle;   //mark conn handle, in fact this equals to BLM_CONN_HANDLE
 					connect_event_occurTick = clock_time()|1;

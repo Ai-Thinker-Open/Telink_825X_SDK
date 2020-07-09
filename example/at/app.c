@@ -181,6 +181,8 @@ void ble_remote_terminate(u8 e,u8 *p, int n) //*p is terminate reason
 	advertise_begin_tick = clock_time();
 
 	at_print((unsigned char *)"\r\n+BLE_DISCONNECTED\r\n");
+
+	gpio_write(CONN_STATE_GPIO, 0);
 }
 
 _attribute_ram_code_ void user_set_rf_power (u8 e, u8 *p, int n)
@@ -206,6 +208,8 @@ void task_connect (u8 e, u8 *p, int n)
 	latest_user_event_tick = clock_time();
 
 	device_in_connection_state = 1;//
+
+	gpio_write(CONN_STATE_GPIO, 1);
 
 	//at_print((unsigned char *)"\r\n+BLE_CONNECTED\r\n");
 	blt_soft_timer_add(&print_connect_state, 100000);

@@ -121,6 +121,10 @@ void my_gpio_init(void)
 
 	gpio_set_input_en(CONTROL_GPIO, 1); //disable input
 
+	gpio_set_func(CONN_STATE_GPIO, AS_GPIO);
+	gpio_set_output_en(CONN_STATE_GPIO, 1);//enable output
+	gpio_set_input_en(CONN_STATE_GPIO, 0); //disable input
+	gpio_setup_up_down_resistor(CONN_STATE_GPIO, PM_PIN_UP_DOWN_FLOAT); 
 }
 
 void at_print(char * str)
