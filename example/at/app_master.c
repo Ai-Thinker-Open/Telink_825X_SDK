@@ -300,6 +300,8 @@ void ble_master_init_normal(void)
 	bls_pm_setSuspendMask (SUSPEND_DISABLE);
 
 	WaitMs(100);
+
+	gpio_write(LOWPWR_STATE_GPIO, 1);//将低功耗状态指示置1，主机模式暂不支持低功耗
 }
 
 _attribute_ram_code_ void ble_master_init_deepRetn(void)

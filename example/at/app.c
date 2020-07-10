@@ -210,6 +210,7 @@ void task_connect (u8 e, u8 *p, int n)
 	device_in_connection_state = 1;//
 
 	gpio_write(CONN_STATE_GPIO, 1);
+	gpio_write(LOWPWR_STATE_GPIO, 1);//将低功耗状态指示置1
 
 	//at_print((unsigned char *)"\r\n+BLE_CONNECTED\r\n");
 	blt_soft_timer_add(&print_connect_state, 100000);
@@ -230,6 +231,7 @@ void task_conn_update_done (u8 e, u8 *p, int n)
 
 _attribute_ram_code_ void  ble_sleep_enter (u8 e, u8 *p, int n)
 {
+	gpio_write(LOWPWR_STATE_GPIO, 0);//将低功耗状态指示置1
 	bls_pm_setWakeupSource(PM_WAKEUP_PAD);  //gpio pad wakeup suspend/deepsleep
 }
 
@@ -241,6 +243,7 @@ _attribute_ram_code_ void  ble_suspend_wakeup (u8 e, u8 *p, int n)
 
 _attribute_ram_code_ void  ble_suspend_gpio_wakeup (u8 e, u8 *p, int n)
 {
+	gpio_write(LOWPWR_STATE_GPIO, 1);//将低功耗状态指示置1
 	bls_pm_setSuspendMask(0);  //退出低功耗
 	at_print("\r\n+WAKEUP\r\n");
 }
@@ -444,7 +447,13 @@ void ble_slave_init_normal(void)
 	if(lsleep_model) //开机即进入睡眠模式
 	{
 		lsleep_enable();
+		gpio_write(LOWPWR_STATE_GPIO, 0);//将低功耗状态指示置0
 	}
+	else
+	{
+		gpio_write(LOWPWR_STATE_GPIO, 1);//将低功耗状态指示置1
+	}
+	
 #else
 	bls_pm_setSuspendMask (SUSPEND_DISABLE);
 #endif
