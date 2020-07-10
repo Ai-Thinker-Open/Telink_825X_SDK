@@ -54,8 +54,6 @@ _attribute_data_retention_	my_fifo_t	uart_rx_fifo = {
 _attribute_data_retention_  u8 baud_buf[1] = { 6 };
 _attribute_data_retention_  u8 ATE = 0;
 
-_attribute_data_retention_  char at_print_buf[256] = { 0 };
-
 typedef enum {
     AT_BAUD_2400 = 0,
 	AT_BAUD_4800,
@@ -136,23 +134,27 @@ void my_gpio_init(void)
 
 void at_print(char * str)
 {
+	while(uart_tx_is_busy());
+	trans_buff.dma_len = 0;
+
 	while(*str)
 	{
 		trans_buff.data[trans_buff.dma_len] = *str++;
 		trans_buff.dma_len += 1;
-		if(trans_buff.dma_len == 12)
+
+		if(trans_buff.dma_len == UART_DATA_LEN)
 		{
+			while(uart_tx_is_busy());
 			uart_dma_send((unsigned char*)&trans_buff);
+			while(uart_tx_is_busy());
 			trans_buff.dma_len = 0;
-			WaitMs(20);
 		}
 	}
 
 	if(trans_buff.dma_len)
 	{
+		while(uart_tx_is_busy());
 		uart_dma_send((unsigned char*)&trans_buff);
-		trans_buff.dma_len = 0;
-		WaitMs(20);
 	}
 }
 const unsigned char hextab[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
@@ -183,27 +185,27 @@ void at_send(char * data, u32 len)
 {
 	while(len > UART_DATA_LEN)//如果超过串口传输最大长度
 	{
+		while(uart_tx_is_busy());
 		memcpy(trans_buff.data, data,  UART_DATA_LEN);
 		data += UART_DATA_LEN;
 		len -= UART_DATA_LEN;
 
 		trans_buff.dma_len = UART_DATA_LEN;
-
-		while(uart_tx_is_busy());
 		uart_dma_send((unsigned char*)&trans_buff);//输出到串口
-		trans_buff.dma_len = 0;
-		
 	}
 
 	if(len > 0)
 	{
+		while(uart_tx_is_busy());
 		memcpy(trans_buff.data, data,  len);
 		trans_buff.dma_len = len;
-		while(uart_tx_is_busy());
+
 		uart_dma_send((unsigned char*)&trans_buff);//输出到串口
-		trans_buff.dma_len = 0;
 	}
 }
+
+void puts(char *s) { at_print(s); }
+
 
 extern u32 device_in_connection_state;
 

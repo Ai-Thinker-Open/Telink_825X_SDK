@@ -134,10 +134,7 @@ static unsigned char atCmd_Baud(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
 	{
-		at_print("\r\n+BAUD:");
-		at_print_buf[0] = baud_buf[0] + '0';
-		at_send(at_print_buf, 1);
-
+		printf("\r\n+BAUD:%d",baud_buf[0]);
 		return 0;
 	}
 
@@ -161,20 +158,16 @@ static unsigned char atCmd_Name(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
 	{
-		memset(at_print_buf, 0, 64);
-
 		at_print("\r\n+NAME:");
 
 		if(my_scanRsp[1] == 0x09) //客户自定义的蓝牙设备名称
 		{
-			memcpy(at_print_buf, my_scanRsp+2, my_scanRsp[0] -1);
+			at_send(my_scanRsp+2, my_scanRsp[0] -1);
 		}
 		else
 		{
-			memcpy(at_print_buf, tbl_scanRsp+2, 10);
+			at_send(tbl_scanRsp+2, 10);
 		}
-		
-		at_print((char*)at_print_buf);
 
 		return 0;
 	}
@@ -191,9 +184,7 @@ static unsigned char atCmd_Mac(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
 	{
-		at_print("\r\n+MAC:");
-		u_sprintf((char*)at_print_buf, "%X%X%X%X%X%X", mac_public[5], mac_public[4], mac_public[3], mac_public[2], mac_public[1], mac_public[0] );
-		at_print((char*)at_print_buf);
+		printf("\r\n+MAC:%X%X%X%X%X%X", mac_public[5], mac_public[4], mac_public[3], mac_public[2], mac_public[1], mac_public[0] );
 		return 0;
 	}
 
@@ -442,10 +433,8 @@ static unsigned char atCmd_Advdata(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
 	{
-		memset(at_print_buf, 0, 64);
 		at_print("\r\n+ADVDATA:");
-		memcpy(at_print_buf, tbl_advData+15, tbl_advData[13] -1);
-		at_print((char*)at_print_buf);
+		at_send(tbl_advData+15, tbl_advData[13] -1);
 		return 0;
 	}
 	else if(mode == AT_CMD_MODE_SET)
@@ -462,9 +451,7 @@ static unsigned char atCmd_Advintv(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
 	{
-		memset(at_print_buf, 0, 64);
-		u_sprintf((char*)at_print_buf, "\r\n+ADVINTV:%d", user_adv_interval_ms);
-		at_print((char*)at_print_buf);
+		printf("\r\n+ADVINTV:%d", user_adv_interval_ms);
 		return 0;
 	}
 	else if(mode == AT_CMD_MODE_SET)
@@ -487,9 +474,7 @@ static unsigned char atCmd_rf_power(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
 	{
-		memset(at_print_buf, 0, 64);
-		u_sprintf((char*)at_print_buf, "\r\n+RFPWR:%d", user_rf_power_index);
-		at_print((char*)at_print_buf);
+		printf("\r\n+RFPWR:%d", user_rf_power_index);
 		return 0;
 	}
 	else if(mode == AT_CMD_MODE_SET)
@@ -513,15 +498,12 @@ static unsigned char atCmd_Ibeacon_UUID(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
 	{
-		memset(at_print_buf, 0, 64);
-		u_sprintf((char*)at_print_buf, "\r\n+IBCNIIUD:%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", 
+		printf("\r\n+IBCNIIUD:%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", 
 										ibeacon_data[ 9], ibeacon_data[10], ibeacon_data[11],ibeacon_data[12],
 										ibeacon_data[13], ibeacon_data[14], ibeacon_data[15],ibeacon_data[16],
 										ibeacon_data[17], ibeacon_data[18], ibeacon_data[19],ibeacon_data[20],
 										ibeacon_data[21], ibeacon_data[22], ibeacon_data[23],ibeacon_data[24]
 		);
-
-		at_print((char*)at_print_buf);
 		return 0;
 	}
 	else if(mode == AT_CMD_MODE_SET)
@@ -542,9 +524,7 @@ static unsigned char atCmd_Major(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
 	{
-		memset(at_print_buf, 0, 64);
-		u_sprintf((char*)at_print_buf, "\r\n+MAJOR:%02X%02X", ibeacon_data[25], ibeacon_data[26]);
-		at_print((char*)at_print_buf);
+		printf("\r\n+MAJOR:%02X%02X", ibeacon_data[25], ibeacon_data[26]);
 		return 0;
 	}
 	else if(mode == AT_CMD_MODE_SET)
@@ -565,9 +545,7 @@ static unsigned char atCmd_Minor(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
 	{
-		memset(at_print_buf, 0, 64);
-		u_sprintf((char*)at_print_buf, "\r\n+MINOR:%02X%02X", ibeacon_data[27],ibeacon_data[28]);
-		at_print((char*)at_print_buf);
+		printf("\r\n+MINOR:%02X%02X", ibeacon_data[27],ibeacon_data[28]);
 		return 0;
 	}
 	else if(mode == AT_CMD_MODE_SET)

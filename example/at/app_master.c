@@ -108,8 +108,7 @@ int app_l2cap_handler (u16 conn_handle, u8 *raw_pkt)
 			// }
 			u8 len = pAtt->l2capLen - 3;
 
-			u_sprintf((char*)at_print_buf, "+DATA:%d,", len);
-			at_print(at_print_buf);
+			printf("+DATA:%d,", len);
 			at_send(pAtt->dat, len);
 			at_print("\r\n");	
 		}
@@ -186,8 +185,7 @@ int controller_event_callback (u32 h, u8 *p, int n)
 			else{
 			}
 
-			u_sprintf(at_print_buf,"+DISCONNECT(%x)\r\n", pd->reason);
-			at_print(at_print_buf);
+			printf("+DISCONNECT(%x)\r\n", pd->reason);
 			gpio_write(CONN_STATE_GPIO, 0);
 			
 			connect_event_occurTick = 0;
@@ -233,8 +231,7 @@ int controller_event_callback (u32 h, u8 *p, int n)
 
 				if(rssi == 0) return;
 
-				u_sprintf((char*)at_print_buf, "+ADV:%d,%02X%02X%02X%02X%02X%02X,", rssi,pa->mac[5],pa->mac[4],pa->mac[3],pa->mac[2],pa->mac[1],pa->mac[0]);
-				at_print(at_print_buf);
+				printf("+ADV:%d,%02X%02X%02X%02X%02X%02X,", rssi,pa->mac[5],pa->mac[4],pa->mac[3],pa->mac[2],pa->mac[1],pa->mac[0]);
 
 				at_print_array(pa->data, pa->len);
 				

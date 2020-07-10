@@ -150,8 +150,6 @@ static const u8 TelinkSppData_1[19] = {
 	TELINK_SPP_DATA_SERVER2CLIENT
 };
 
-_attribute_data_retention_  char buff[64] = {0};
-
 /* 回调函数
 如果蓝牙收到数据，将传入一个结构体指针并调用此函数处理。
 rf_packet_att_write_t是SDK定义的蓝牙写入数据的结构体，
@@ -163,8 +161,7 @@ int module_onReceiveData(rf_packet_att_write_t *p)
 	if((gpio_read(CONTROL_GPIO) == 0)) //AT模式
 	{
 		//安可信规定AT指令和返回以回车换行符开始，回车换行符结束
-		u_sprintf(buff, "\r\n+DATA:%d,", len);//猜测应该是计算长度并把字符串赋值给buff
-		at_print(buff);//输出字符串 \r\n+DATA:%d
+		printf("\r\n+DATA:%d,", len);//猜测应该是计算长度并把字符串赋值给buff
 
 		at_send((char*)&p->value, len);//输出蓝牙传输的值
 

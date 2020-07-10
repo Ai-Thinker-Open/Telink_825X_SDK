@@ -71,8 +71,6 @@ extern "C"
 #define MODULE_WATCHDOG_ENABLE 0
 #define WATCHDOG_INIT_TIMEOUT 500 //ms
 
-	extern char at_print_buf[256];
-
 /////////////open SWS digital pullup to prevent MCU err, this is must ////////////
 #define PA7_DATA_OUT 1
 
