@@ -232,6 +232,7 @@ void task_conn_update_done (u8 e, u8 *p, int n)
 _attribute_ram_code_ void  ble_sleep_enter (u8 e, u8 *p, int n)
 {
 	gpio_write(LOWPWR_STATE_GPIO, 0);//将低功耗状态指示置1
+	gpio_setup_up_down_resistor(LOWPWR_STATE_GPIO, PM_PIN_PULLDOWN_100K);
 	bls_pm_setWakeupSource(PM_WAKEUP_PAD);  //gpio pad wakeup suspend/deepsleep
 }
 
@@ -279,7 +280,7 @@ void lsleep_enable()
 
 	bls_app_registerEventCallback (BLT_EV_FLAG_GPIO_EARLY_WAKEUP, &ble_suspend_gpio_wakeup);
 
-	gpio_setup_up_down_resistor(UART_RX_PIN, PM_PIN_PULLDOWN_100K);
+	gpio_setup_up_down_resistor(UART_RX_PIN, PM_PIN_PULLUP_10K);
 	cpu_set_gpio_wakeup (UART_RX_PIN, Level_Low, 1); 
 	bls_pm_setWakeupSource(PM_WAKEUP_PAD); 
 }

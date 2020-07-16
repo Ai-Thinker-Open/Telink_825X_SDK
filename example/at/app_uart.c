@@ -156,6 +156,7 @@ void at_print(char * str)
 		while(uart_tx_is_busy());
 		uart_dma_send((unsigned char*)&trans_buff);
 	}
+	while(uart_tx_is_busy());
 }
 const unsigned char hextab[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 void at_print_hexstr(char * data, u32 len)

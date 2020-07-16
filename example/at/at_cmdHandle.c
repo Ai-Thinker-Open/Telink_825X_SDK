@@ -80,7 +80,7 @@ static unsigned char atCmd_Sleep(char *pbuf,  int mode, int lenth)
 {
 	at_print("\r\nOK\r\n");
 
-	gpio_setup_up_down_resistor(UART_RX_PIN, PM_PIN_PULLDOWN_100K);
+	gpio_setup_up_down_resistor(UART_RX_PIN, PM_PIN_PULLUP_10K);
 	cpu_set_gpio_wakeup (UART_RX_PIN, Level_Low, 1); 
 
 	cpu_sleep_wakeup(DEEPSLEEP_MODE, PM_WAKEUP_PAD, 0);  //deepsleep
@@ -112,8 +112,8 @@ static unsigned char  atCmd_LSleep(char *pbuf,  int mode, int lenth)
 	}
 	else if(mode == AT_CMD_MODE_EXECUTION)
 	{
-		lsleep_enable();
 		at_print("\r\nOK\r\n");
+		lsleep_enable();
 		return 0xFF;
 	}
 	else
