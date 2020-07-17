@@ -21,8 +21,8 @@
 |   模块  |串口TX|串口RX|控制引脚 |低功耗状态指示引脚|连接状态指示引脚|
 |---------|------|------|--------|------------|---------------------|
 |TB-01    |PB1   |PB0   |PC5     |无          |无
-|TB-02+   |PB1   |PA0   |PD2     |PC3         |PC4
-|TB-02_Kit|PB1   |PB7   |PD2     |PC3         |PC4
+|TB-02+   |PB1   |PA0   |PC5     |PC3         |PC4
+|TB-02_Kit|PB1   |PB7   |PC5     |PC3         |PC4
 
 
 模块未与手机连接时，将处于AT模式，可响应AT指令。与手机连接后将进入透传模式，此时不再响应AT指令。如果用户需要在透传模式下发送AT指令，可将控制引脚拉低，拉低后模块将临时进入AT模式，释放后重新回到透传模式。状态对应如下表：
@@ -35,26 +35,14 @@
 
 备注：如果用户不需要使用透传模式，将CONTROL_GPIO通过电阻下拉即可。AT模式下可通过AT+SEND指令发送数据。
 
-## 板子选择
+## 修改控制及指示引脚
 
-- 默认是 TB02模块开发板，如下选择对应您的板子模块，代码在  ```app_config.h```
+上述 ```控制引脚``` ```低功耗状态指示引脚``` ```连接状态指示引脚``` 在  ```app_config.h``` 文件定义，如有需要可自行修改。
 
-```
-#define _MODULE_TB_02_DEV_BOARD_
+## 串口自适应
 
-#if defined _MODULE_TB_01_ //TB01模块
-#define CONTROL_GPIO GPIO_PC5
-#define UART_RX_PIN UART_RX_PB0
-#elif defined _MODULE_TB_02_ //TB02模块
-#define CONTROL_GPIO GPIO_PD2
-#define UART_RX_PIN UART_RX_PA0
-#elif defined _MODULE_TB_02_DEV_BOARD_ //TB02开发板
-#define CONTROL_GPIO GPIO_PD2
-#define UART_RX_PIN UART_RX_PB7
-#else
-#error "please set module type"
-#endif
-```
+串口配置部分在```app_uart.c```文件中，默认TX为 PB1，RX引脚采用自适应的方式，上电检测 PA0，PB0，PB7的电平状态，如果某个是高电平，则将其设为串口Rx。
+
 
 ## AT 指令格式
 AT 指令可以细分为四种格式类型：

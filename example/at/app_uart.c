@@ -54,6 +54,8 @@ _attribute_data_retention_	my_fifo_t	uart_rx_fifo = {
 _attribute_data_retention_  u8 baud_buf[1] = { 6 };
 _attribute_data_retention_  u8 ATE = 0;
 
+_attribute_data_retention_  GPIO_PinTypeDef UART_RX_PIN = 0;
+
 typedef enum {
     AT_BAUD_2400 = 0,
 	AT_BAUD_4800,
@@ -74,7 +76,46 @@ void app_uart_init(AT_BAUD baud)
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
 	uart_recbuff_init( (unsigned short *)my_fifo_wptr(&uart_rx_fifo), UART_DATA_LEN);
 
-	uart_gpio_set(UART_TX_PB1, UART_RX_PIN);// uart tx/rx pin set
+	gpio_set_func(UART_RX_PA0, AS_GPIO);//TB-02/TB-03F/TB-04
+	gpio_set_func(UART_RX_PB0, AS_GPIO);//TB-01
+	gpio_set_func(UART_RX_PB7, AS_GPIO);//TB-02 Kit
+
+	gpio_set_output_en(UART_RX_PA0, 0);
+	gpio_set_output_en(UART_RX_PB0, 0);
+	gpio_set_output_en(UART_RX_PB7, 0);
+
+	gpio_set_input_en(UART_RX_PA0, 1); 
+	gpio_set_input_en(UART_RX_PB0, 1); 
+	gpio_set_input_en(UART_RX_PB7, 1); 
+
+	gpio_setup_up_down_resistor(UART_RX_PA0, PM_PIN_PULLDOWN_100K);
+	gpio_setup_up_down_resistor(UART_RX_PB0, PM_PIN_PULLDOWN_100K);
+	gpio_setup_up_down_resistor(UART_RX_PB7, PM_PIN_PULLDOWN_100K);
+
+	while(1)//检测UART Rx 引脚
+	{
+		if(gpio_read(UART_RX_PA0) != 0)
+		{	
+			UART_RX_PIN = UART_RX_PA0;
+			break;
+		}
+		else if (gpio_read(UART_RX_PB0) != 0)
+		{
+			UART_RX_PIN = UART_RX_PB0;
+			break;
+		}
+		else if (gpio_read(UART_RX_PB7) != 0)
+		{
+			UART_RX_PIN = UART_RX_PB7;
+			break;
+		}
+	}
+
+	gpio_setup_up_down_resistor(UART_RX_PA0, PM_PIN_UP_DOWN_FLOAT);
+	gpio_setup_up_down_resistor(UART_RX_PB0, PM_PIN_UP_DOWN_FLOAT);
+	gpio_setup_up_down_resistor(UART_RX_PB7, PM_PIN_UP_DOWN_FLOAT);
+
+	uart_gpio_set(UART_TX_PB1, UART_RX_PIN);
 
 	uart_reset();  //will reset uart digital registers from 0x90 ~ 0x9f, so uart setting must set after this reset
 

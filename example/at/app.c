@@ -192,6 +192,7 @@ _attribute_ram_code_ void user_set_rf_power (u8 e, u8 *p, int n)
 
 static unsigned char print_connect_state()
 {
+	blc_att_requestMtuSizeExchange(BLS_CONN_HANDLE, 247);
 	blt_soft_timer_delete(print_connect_state);
 	at_print((unsigned char *)"\r\n+BLE_CONNECTED\r\n");
 }
@@ -263,7 +264,7 @@ void iBeacon_init()
 	bls_ll_setAdvData((u8 *)ibeacon_data, 30);
 }
 
-
+extern  GPIO_PinTypeDef UART_RX_PIN;
 void lsleep_enable()
 {
 	#if (PM_DEEPSLEEP_RETENTION_ENABLE)
@@ -316,7 +317,7 @@ void ble_slave_init_normal(void)
 	blc_gap_peripheral_init();    //gap initialization
 	extern void my_att_init ();
 	my_att_init (); //gatt initialization
-	blc_att_setRxMtuSize(250);
+	blc_att_setRxMtuSize(247);
 	blc_l2cap_register_handler(blc_l2cap_packet_receive);  	//l2cap initialization
 
 	//Smp Initialization may involve flash write/erase(when one sector stores too much information,

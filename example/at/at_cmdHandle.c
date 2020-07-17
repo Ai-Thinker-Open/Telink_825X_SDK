@@ -76,9 +76,12 @@ static unsigned char atCmd_Reset(char *pbuf,  int mode, int lenth)
 	return 0;
 }
 //睡眠
+extern  GPIO_PinTypeDef UART_RX_PIN;
 static unsigned char atCmd_Sleep(char *pbuf,  int mode, int lenth)
 {
 	at_print("\r\nOK\r\n");
+
+	sleep_ms(2);//等待上上述数据发送完成，不同波特率需要时间不同
 
 	gpio_setup_up_down_resistor(UART_RX_PIN, PM_PIN_PULLUP_10K);
 	cpu_set_gpio_wakeup (UART_RX_PIN, Level_Low, 1); 
