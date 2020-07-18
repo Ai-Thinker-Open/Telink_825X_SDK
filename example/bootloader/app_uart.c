@@ -44,7 +44,48 @@ void app_uart_init(int baud)
 	//note: dma addr must be set first before any other uart initialization! (confirmed by sihui)
 	uart_recbuff_init( (unsigned char *)&rec_buff, sizeof(rec_buff));
 
-	uart_gpio_set(UART_TX_PB1, UART_RX_PIN);// uart tx/rx pin set
+	GPIO_PinTypeDef UART_RX_PIN = 0;
+
+	gpio_set_func(UART_RX_PA0, AS_GPIO);//TB-02/TB-03F/TB-04
+	gpio_set_func(UART_RX_PB0, AS_GPIO);//TB-01
+	gpio_set_func(UART_RX_PB7, AS_GPIO);//TB-02 Kit
+
+	gpio_set_output_en(UART_RX_PA0, 0);
+	gpio_set_output_en(UART_RX_PB0, 0);
+	gpio_set_output_en(UART_RX_PB7, 0);
+
+	gpio_set_input_en(UART_RX_PA0, 1); 
+	gpio_set_input_en(UART_RX_PB0, 1); 
+	gpio_set_input_en(UART_RX_PB7, 1); 
+
+	gpio_setup_up_down_resistor(UART_RX_PA0, PM_PIN_PULLDOWN_100K);
+	gpio_setup_up_down_resistor(UART_RX_PB0, PM_PIN_PULLDOWN_100K);
+	gpio_setup_up_down_resistor(UART_RX_PB7, PM_PIN_PULLDOWN_100K);
+
+	while(1)//检测UART Rx 引脚
+	{
+		if(gpio_read(UART_RX_PA0) != 0)
+		{	
+			UART_RX_PIN = UART_RX_PA0;
+			break;
+		}
+		else if (gpio_read(UART_RX_PB0) != 0)
+		{
+			UART_RX_PIN = UART_RX_PB0;
+			break;
+		}
+		else if (gpio_read(UART_RX_PB7) != 0)
+		{
+			UART_RX_PIN = UART_RX_PB7;
+			break;
+		}
+	}
+
+	gpio_setup_up_down_resistor(UART_RX_PA0, PM_PIN_UP_DOWN_FLOAT);
+	gpio_setup_up_down_resistor(UART_RX_PB0, PM_PIN_UP_DOWN_FLOAT);
+	gpio_setup_up_down_resistor(UART_RX_PB7, PM_PIN_UP_DOWN_FLOAT);
+
+	uart_gpio_set(UART_TX_PB1, UART_RX_PIN);
 
 	uart_reset();  //will reset uart digital registers from 0x90 ~ 0x9f, so uart setting must set after this reset
 
@@ -76,24 +117,16 @@ void app_uart_init(int baud)
 
 void uart_print(char * str)
 {
+	while(uart_tx_is_busy());
+	trans_buff.dma_len = 0;
+
 	while(*str)
 	{
 		trans_buff.data[trans_buff.dma_len] = *str++;
 		trans_buff.dma_len += 1;
-		if(trans_buff.dma_len == 12)
-		{
-			uart_dma_send((unsigned char*)&trans_buff);
-			trans_buff.dma_len = 0;
-			WaitMs(2);
-		}
 	}
 
-	if(trans_buff.dma_len)
-	{
-		uart_dma_send((unsigned char*)&trans_buff);
-		trans_buff.dma_len = 0;
-		WaitMs(2);
-	}
+	uart_dma_send((unsigned char*)&trans_buff);
 }
 
 void uart_send(char * data, u32 len)
@@ -152,7 +185,7 @@ void app_uart_loop(void)
 			switch (rec_buff.data[0])
 			{
 				case CMD_VRSN: //读取版本号
-					sprintf(buff, BOOT_VERSION BOARD_NAME "\r\n");
+					sprintf(buff, BOOT_VERSION "\r\n");
 					break;
 
 				case CMD_WRTE: //写Flash

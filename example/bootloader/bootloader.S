@@ -144,6 +144,7 @@ BOOT_COPY_END:
 	tloadr	r1, UART_BOOT_DATA + 12		@ Source addr
 	tloadr	r2, UART_BOOT_DATA + 16		@ Direct addr
 	tloadr	r3, UART_BOOT_DATA + 20		@ Direct addr + Len
+	tloadr	r4, UART_BOOT_DATA + 24		@ reboot addr
 	
 	tjl _boot_copy_start_
 
@@ -157,10 +158,8 @@ USER_COPY:
 	tadd    r2, #4
 	tj		USER_COPY
 USER_COPY_END:
-	.word 	0x980797f6	@tjl 	__start from 0x9FE0
-
-	@9fee:	97f6 9807 	tjl	0 <__start>
-	@3fee:	97fc 9807 	tjl	0 <__start>
+	tmov        r1,#0x88
+	tstorerb    r1,[r4,#0] 	@reboot from RAM
 
 	.align 4
 UART_BOOT_DATA:
@@ -170,6 +169,7 @@ UART_BOOT_DATA:
 	.word	0x02C000
 	.word	0x840000
 	.word	0x844000
+	.word	0x800602
 
 UART_BOOT_END:
 
