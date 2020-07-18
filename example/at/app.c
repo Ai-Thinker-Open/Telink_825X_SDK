@@ -232,6 +232,11 @@ void task_conn_update_done (u8 e, u8 *p, int n)
 
 _attribute_ram_code_ void  ble_sleep_enter (u8 e, u8 *p, int n)
 {
+	while(uart_tx_is_busy())//等待串口数据发送完成，不同波特率需要时间不同
+	{
+		sleep_us(10);
+	};
+
 	gpio_write(LOWPWR_STATE_GPIO, 0);//将低功耗状态指示置1
 	gpio_setup_up_down_resistor(LOWPWR_STATE_GPIO, PM_PIN_PULLDOWN_100K);
 	bls_pm_setWakeupSource(PM_WAKEUP_PAD);  //gpio pad wakeup suspend/deepsleep
