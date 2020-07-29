@@ -67,20 +67,23 @@ _attribute_ram_code_ int main (void)    //must run in ramcode
 
 	tinyFlash_Init(0x70000,0x4000); //初始化KV存储系统
 
-	u8 len =1;
+	if(!deepRetWakeUp )
+	{
+		u8 len =1;
 
-	tinyFlash_Read(STORAGE_BAUD, baud_buf, &len); //读取波特率
+		tinyFlash_Read(STORAGE_BAUD, baud_buf, &len); //读取波特率
 
+		tinyFlash_Read(STORAGE_ATE, &ATE, &len); //读取ATE
+		
+		len =1;
+		tinyFlash_Read(STORAGE_MODE, &device_mode, &len); //读取ATE
+	}
 	app_uart_init(baud_buf[0]);  //初始化串口
 
 	my_gpio_init(); //初始化GPIO
 
 	blt_soft_timer_init(); // 初始化定时器
-
-	tinyFlash_Read(STORAGE_ATE, &ATE, &len); //读取ATE
 	
-	len =1;
-	tinyFlash_Read(STORAGE_MODE, &device_mode, &len); //读取ATE
 
 	if( deepRetWakeUp )
 	{
