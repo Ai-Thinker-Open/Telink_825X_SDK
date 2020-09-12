@@ -190,7 +190,7 @@ static unsigned char atCmd_Mac(char *pbuf,  int mode, int lenth)
 {
 	if(mode == AT_CMD_MODE_READ)
 	{
-		printf("\r\n+MAC:%X%X%X%X%X%X", mac_public[5], mac_public[4], mac_public[3], mac_public[2], mac_public[1], mac_public[0] );
+		printf("\r\n+MAC:%02X%02X%02X%02X%02X%02X", mac_public[5], mac_public[4], mac_public[3], mac_public[2], mac_public[1], mac_public[0] );
 		return 0;
 	}
 
